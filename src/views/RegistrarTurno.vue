@@ -41,6 +41,22 @@
             </v-list>
           </v-card-text>
         </v-card>
+
+        <v-card class="mt-4">
+          <v-card-title>Detalle de Yapes</v-card-title>
+          <v-card-text>
+            <v-btn color="primary" @click="yapeDialog = true" :disabled="isRegistering">Agregar Yape</v-btn>
+            <v-list lines="one" class="mt-3">
+              <v-list-item v-for="(yape, index) in yapes" :key="index">
+                <v-list-item-title>Detalle: <strong>{{ yape.detalle }}</strong></v-list-item-title>
+                <v-list-item-subtitle>Monto: <strong>S/ {{ yape.monto.toFixed(2) }}</strong></v-list-item-subtitle>
+                <template v-slot:append>
+                  <v-btn @click="removeYape(index)" color="error" icon="mdi-delete" variant="text" :disabled="isRegistering"></v-btn>
+                </template>
+              </v-list-item>
+            </v-list>
+          </v-card-text>
+        </v-card>
       </v-col>
     </v-row>
 
@@ -57,7 +73,7 @@
             <v-col cols="12" md="3"><v-text-field v-model.number="turno.dineroPancafe" label="Dinero Pancafe" type="number" step="0.01" required :disabled="isRegistering"></v-text-field></v-col>
             <v-col cols="12" md="3"><v-text-field v-model.number="turno.usanzaPancafe" label="Usanza Pancafe" type="number" step="0.01" required :disabled="isRegistering"></v-text-field></v-col>
             <v-col cols="12" md="3"><v-text-field v-model.number="turno.efectivo" label="Efectivo" type="number" step="0.01" required :disabled="isRegistering"></v-text-field></v-col>
-            <v-col cols="12" md="3"><v-text-field v-model.number="turno.yape" label="Yape" type="number" step="0.01" required :disabled="isRegistering"></v-text-field></v-col>
+            <v-col cols="12" md="3"><v-text-field v-model.number="turno.yape" label="Yape (Calculado)" type="number" step="0.01" readonly required :disabled="isRegistering"></v-text-field></v-col>
             <v-col cols="12" md="3"><v-text-field v-model.number="turno.consumo" label="Consumo" type="number" step="0.01" required :disabled="isRegistering"></v-text-field></v-col>
             <v-col cols="12" md="3"><v-text-field v-model.number="turno.snacks" label="Snacks (Calculado)" type="number" step="0.01" readonly required :disabled="isRegistering"></v-text-field></v-col>
             <v-col cols="12" md="3"><v-text-field v-model.number="turno.ingresoInventario" label="Ingreso Inventario (Calculado)" type="number" step="0.01" readonly required :disabled="isRegistering"></v-text-field></v-col>
@@ -95,12 +111,39 @@
       </v-card>
     </v-dialog>
 
+    <!-- Dialog for adding Yapes -->
+    <v-dialog v-model="yapeDialog" persistent max-width="600px">
+      <v-card>
+        <v-card-title><span class="text-h5">Agregar Yape</span></v-card-title>
+        <v-card-text>
+          <v-text-field v-model="newYape.detalle" label="Detalle" required></v-text-field>
+          <v-text-field v-model.number="newYape.monto" label="Monto" type="number" step="0.01" required></v-text-field>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn color="blue darken-1" text @click="yapeDialog = false">Cancelar</v-btn>
+          <v-btn color="blue darken-1" text @click="submitNewYape">Agregar</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
     <!-- Dialog for adding withdrawals -->
     <v-dialog v-model="retiroDialog" persistent max-width="600px">
       <v-card>
         <v-card-title><span class="text-h5">Agregar Retiro</span></v-card-title>
         <v-card-text>
-          <v-text-field v-model="newRetiro.description" label="Descripción" required></v-text-field>
+          <v-select
+            v-model="newRetiro.description"
+            :items="['PROMOCIONES', 'DESCUENTO', 'OTRO']"
+            label="Tipo de Retiro"
+            required
+          ></v-select>
+          <v-text-field
+            v-if="newRetiro.description === 'OTRO'"
+            v-model="newRetiro.customDescription"
+            label="Especifique la descripción"
+            required
+          ></v-text-field>
           <v-text-field v-model.number="newRetiro.amount" label="Monto" type="number" step="0.01" required></v-text-field>
         </v-card-text>
         <v-card-actions>
@@ -122,9 +165,11 @@ import { useNotificationStore } from '../stores/notification';
 const TURNO_STORAGE_KEY = 'turno_draft';
 const MOVEMENTS_STORAGE_KEY = 'movements_draft';
 const RETIROS_STORAGE_KEY = 'retiros_draft';
+const YAPES_STORAGE_KEY = 'yapes_draft';
 
 const movementDialog = ref(false);
 const retiroDialog = ref(false);
+const yapeDialog = ref(false);
 const isRegistering = ref(false);
 const isPageLoading = ref(true);
 
@@ -134,10 +179,12 @@ const turno = reactive({
 });
 
 const newMovement = reactive({ productId: null, quantity: 1, type: 'OUT' });
-const newRetiro = reactive({ description: '', amount: 0 });
+const newRetiro = reactive({ description: null, amount: 0, customDescription: '' });
+const newYape = reactive({ detalle: '', monto: 0 });
 
 const movements = ref([]);
 const retiros = ref([]);
+const yapes = ref([]);
 const productStore = useProductStore();
 const products = ref([]);
 
@@ -171,14 +218,17 @@ const ingresoInventarioTotal = computed(() =>
 );
 
 const retirosTotal = computed(() => retiros.value.reduce((total, retiro) => total + retiro.amount, 0));
+const yapesTotal = computed(() => yapes.value.reduce((total, yape) => total + yape.monto, 0));
 
 watch(snacksTotal, (newTotal) => { turno.snacks = parseFloat(newTotal.toFixed(2)); });
 watch(ingresoInventarioTotal, (newTotal) => { turno.ingresoInventario = parseFloat(newTotal.toFixed(2)); });
 watch(retirosTotal, (newTotal) => { turno.retiros = parseFloat(newTotal.toFixed(2)); });
+watch(yapesTotal, (newTotal) => { turno.yape = parseFloat(newTotal.toFixed(2)); });
 
 watch(turno, (newTurno) => { localStorage.setItem(TURNO_STORAGE_KEY, JSON.stringify(newTurno)); }, { deep: true });
 watch(movements, (newMovements) => { localStorage.setItem(MOVEMENTS_STORAGE_KEY, JSON.stringify(newMovements)); }, { deep: true });
 watch(retiros, (newRetiros) => { localStorage.setItem(RETIROS_STORAGE_KEY, JSON.stringify(newRetiros)); }, { deep: true });
+watch(yapes, (newYapes) => { localStorage.setItem(YAPES_STORAGE_KEY, JSON.stringify(newYapes)); }, { deep: true });
 
 const diferencia = computed(() => {
   const total = (turno.dineroPancafe + turno.snacks) - (turno.retiros + turno.consumo + turno.efectivo + turno.yape);
@@ -191,8 +241,9 @@ const handleRegister = async () => {
   try {
     const movementsToSubmit = movements.value.map(({ productId, quantity, type }) => ({ productId, quantity, type }));
     const retirosToSubmit = retiros.value.map(({ description, amount }) => ({ description, amount }));
+    const yapesToSubmit = yapes.value.map(({ detalle, monto }) => ({ detalle, monto }));
 
-    await turnoStore.createTurno({ turno, movements: movementsToSubmit, retiros: retirosToSubmit });
+    await turnoStore.createTurno({ turno, movements: movementsToSubmit, retiros: retirosToSubmit, yapes: yapesToSubmit });
 
     notificationStore.show('Turno registrado exitosamente!');
     Object.assign(turno, {
@@ -201,10 +252,12 @@ const handleRegister = async () => {
     });
     movements.value = [];
     retiros.value = [];
+    yapes.value = [];
 
     localStorage.removeItem(TURNO_STORAGE_KEY);
     localStorage.removeItem(MOVEMENTS_STORAGE_KEY);
     localStorage.removeItem(RETIROS_STORAGE_KEY);
+    localStorage.removeItem(YAPES_STORAGE_KEY);
   } catch (error) {
     notificationStore.show(error.message, 'error');
   } finally {
@@ -248,18 +301,36 @@ const addRetiro = (retiro) => {
 
 const submitNewRetiro = () => {
   const amount = parseFloat(newRetiro.amount);
-  if (newRetiro.description && !isNaN(amount) && amount !== 0) {
-    addRetiro({ ...newRetiro, amount: amount });
-    newRetiro.description = '';
+  const finalDescription = newRetiro.description === 'OTRO' ? newRetiro.customDescription : newRetiro.description;
+
+  if (finalDescription && !isNaN(amount) && amount !== 0) {
+    addRetiro({ description: finalDescription, amount: amount });
+    
+    // Reset form
+    newRetiro.description = null;
     newRetiro.amount = 0;
+    newRetiro.customDescription = '';
     retiroDialog.value = false;
   } else {
-    // Optional: Notify user of invalid input
-    notificationStore.show('Por favor, ingrese una descripción y un monto válido.', 'error');
+    notificationStore.show('Por favor, complete todos los campos y asegúrese que el monto no sea cero.', 'error');
   }
 };
 
 const removeRetiro = (index) => { retiros.value.splice(index, 1); };
+
+const submitNewYape = () => {
+  const monto = parseFloat(newYape.monto);
+  if (newYape.detalle && !isNaN(monto) && monto > 0) {
+    yapes.value.push({ ...newYape, monto: monto });
+    newYape.detalle = '';
+    newYape.monto = 0;
+    yapeDialog.value = false;
+  } else {
+    notificationStore.show('Por favor, ingrese un detalle y un monto válido y mayor a cero.', 'error');
+  }
+};
+
+const removeYape = (index) => { yapes.value.splice(index, 1); };
 
 onMounted(async () => {
   isPageLoading.value = true;
@@ -275,6 +346,9 @@ onMounted(async () => {
 
     const savedRetiros = localStorage.getItem(RETIROS_STORAGE_KEY);
     if (savedRetiros) retiros.value = JSON.parse(savedRetiros);
+
+    const savedYapes = localStorage.getItem(YAPES_STORAGE_KEY);
+    if (savedYapes) yapes.value = JSON.parse(savedYapes);
   } catch (error) {
     notificationStore.show('Error al cargar los productos.', 'error');
   } finally {

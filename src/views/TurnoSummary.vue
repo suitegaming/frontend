@@ -46,6 +46,22 @@
               </tr>
             </tbody>
           </v-table>
+
+          <h5 class="mt-4 text-h6">Detalle de Yapes</h5>
+          <v-table>
+            <thead>
+              <tr>
+                <th class="text-left">Detalle</th>
+                <th class="text-left">Monto</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(yape, index) in summary.yapes" :key="index">
+                <td>{{ yape.detalle }}</td>
+                <td>S/ {{ yape.monto.toFixed(2) }}</td>
+              </tr>
+            </tbody>
+          </v-table>
         </v-card-text>
       </v-card>
       <v-alert v-if="error" type="error">{{ error }}</v-alert>
