@@ -78,7 +78,9 @@ const isPageLoading = ref(true);
 const fetchTurnos = async () => {
   isPageLoading.value = true;
   try {
-    turnos.value = await turnoStore.getTurnos();
+    const fetchedTurnos = await turnoStore.getTurnos();
+    // Sort by ID in descending order to show the latest first
+    turnos.value = fetchedTurnos.sort((a, b) => b.id - a.id);
   } catch (error) {
     notificationStore.show('Error al cargar los turnos.', 'error');
   } finally {

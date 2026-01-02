@@ -293,7 +293,12 @@ const submitNewMovement = () => {
   }
 };
 
-const removeMovement = (index) => { movements.value.splice(index, 1); };
+const removeMovement = (movementToRemove) => {
+  const index = movements.value.findIndex(m => m.productId === movementToRemove.productId && m.type === movementToRemove.type);
+  if (index !== -1) {
+    movements.value.splice(index, 1);
+  }
+};
 
 const addRetiro = (retiro) => {
   retiros.value.push(retiro);

@@ -10,7 +10,9 @@ export const useTurnoStore = defineStore('turno', {
         const response = await axios.post(`${API_URL}/api/turnos`, turnoData);
         return response.data;
       } catch (error) {
-        throw new Error(error.response?.data || 'Failed to create turno');
+        // Extrae el mensaje de error específico de la respuesta del backend.
+        const errorMessage = error.response?.data?.message || error.response?.data;
+        throw new Error(errorMessage || 'Failed to create turno');
       }
     },
     async getTurnos() {
