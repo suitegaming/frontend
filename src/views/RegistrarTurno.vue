@@ -9,7 +9,7 @@
           <v-card-text>
             <v-btn color="primary" @click="movementDialog = true" :disabled="isRegistering">Agregar Movimiento</v-btn>
             <v-list lines="two" class="mt-3">
-              <v-list-item v-for="(movement, index) in sortedMovements" :key="index">
+              <v-list-item v-for="movement in sortedMovements" :key="`${movement.productId}-${movement.type}`">
                 <v-list-item-title>
                   Producto: <strong>{{ movement.productName }}</strong> - Cantidad: <strong>{{ movement.quantity }}</strong>
                 </v-list-item-title>
@@ -17,7 +17,7 @@
                   Tipo: <v-chip :color="movement.type === 'IN' ? 'success' : 'error'" small><strong>{{ movement.type }}</strong></v-chip>
                 </v-list-item-subtitle>
                 <template v-slot:append>
-                  <v-btn @click="removeMovement(index)" color="error" icon="mdi-delete" variant="text" :disabled="isRegistering"></v-btn>
+                  <v-btn @click="removeMovement(movement)" color="error" icon="mdi-delete" variant="text" :disabled="isRegistering"></v-btn>
                 </template>
               </v-list-item>
             </v-list>
