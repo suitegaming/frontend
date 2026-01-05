@@ -111,7 +111,7 @@
                 <td>S/ {{ day.totalYape.toFixed(2) }}</td>
                 <td>S/ {{ day.totalSnacks.toFixed(2) }}</td>
                 <td>S/ {{ day.totalRetiros.toFixed(2) }}</td>
-                <td>{{ day.totalKw.toFixed(2) }}</td>
+                <td>{{ day.kwConsumidos.toFixed(2) }}</td>
                 <td>S/ {{ day.diferenciaDia.toFixed(2) }}</td>
               </tr>
             </tbody>
