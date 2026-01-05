@@ -236,6 +236,26 @@ const diferencia = computed(() => {
 });
 
 const handleRegister = async () => {
+  // --- INICIO DE LA PRE-VALIDACIÓN ---
+  const productNetChanges = new Map();
+  for (const movement of movements.value) {
+    const change = movement.type === 'IN' ? movement.quantity : -movement.quantity;
+    productNetChanges.set(movement.productId, (productNetChanges.get(movement.productId) || 0) + change);
+  }
+
+  for (const [productId, netChange] of productNetChanges.entries()) {
+    const product = products.value.find(p => p.id === productId);
+    // Solo necesitamos comprobar si el stock final sería negativo
+    if (product && (product.stock + netChange < 0)) {
+      notificationStore.show(
+        `Stock insuficiente para "${product.name}". Stock actual: ${product.stock}, y el movimiento neto del turno es ${netChange}. Resultaría en un stock de ${product.stock + netChange}.`,
+        'error'
+      );
+      return; // Detiene el registro
+    }
+  }
+  // --- FIN DE LA PRE-VALIDACIÓN ---
+
   isRegistering.value = true;
   await nextTick();
   try {
