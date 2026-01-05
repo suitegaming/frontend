@@ -19,12 +19,15 @@
                   <th class="text-left">Efectivo</th>
                   <th class="text-left">Yape</th>
                   <th class="text-left">Snacks</th>
+                  <th class="text-left">DINEROPCS</th>
                   <th class="text-left">Ingreso Inventario</th>
                   <th class="text-left">Consumo</th>
                   <th class="text-left">Retiros</th>
+                  <th class="text-left">% Retiros</th>
                   <th class="text-left">Dinero Pancafe</th>
                   <th class="text-left">Usanza Pancafe</th>
                   <th class="text-left">KW</th>
+                  <th class="text-left">KW Consumidos</th>
                   <th class="text-left">Usuarios</th>
                   <th class="text-left">Diferencia</th>
                   <th v-if="authStore.isAdmin" class="text-left">Acciones</th>
@@ -39,12 +42,15 @@
                   <td>{{ turno.efectivo }}</td>
                   <td>{{ turno.yape }}</td>
                   <td>{{ turno.snacks }}</td>
+                  <td>{{ (turno.efectivo + turno.yape + turno.snacks).toFixed(2) }}</td>
                   <td>{{ turno.ingresoInventario }}</td>
                   <td>{{ turno.consumo }}</td>
                   <td>{{ turno.retiros }}</td>
+                  <td>{{ calculateRetirosPercentage(turno) }}</td>
                   <td>{{ turno.dineroPancafe }}</td>
                   <td>{{ turno.usanzaPancafe }}</td>
                   <td>{{ turno.kw }}</td>
+                  <td>{{ turno.kwConsumidos }}</td>
                   <td>{{ turno.usuarios }}</td>
                   <td>{{ (turno.dineroPancafe + turno.snacks - turno.retiros - turno.consumo - turno.efectivo - turno.yape).toFixed(2) }}</td>
                   <td v-if="authStore.isAdmin">
@@ -75,12 +81,40 @@ const notificationStore = useNotificationStore();
 const deletingTurnoId = ref(null);
 const isPageLoading = ref(true);
 
+const calculateRetirosPercentage = (turno) => {
+  const dineropcs = turno.efectivo + turno.yape + turno.snacks;
+  if (dineropcs === 0) {
+    return '0.00 %';
+  }
+  const percentage = (turno.retiros * 100) / dineropcs;
+  return percentage.toFixed(2) + ' %';
+};
+
 const fetchTurnos = async () => {
   isPageLoading.value = true;
   try {
     const fetchedTurnos = await turnoStore.getTurnos();
     // Sort by ID in descending order to show the latest first
-    turnos.value = fetchedTurnos.sort((a, b) => b.id - a.id);
+    const sortedTurnos = fetchedTurnos.sort((a, b) => b.id - a.id);
+
+    // Process the array to add the calculated 'kwConsumidos' property
+    const processedTurnos = sortedTurnos.map((turno, index) => {
+      // The "previous" turn is the next one in the array because of the descending sort
+      const previousTurn = sortedTurnos[index + 1];
+      let kwConsumidos = 'N/A'; // Default value for the last turn in the list
+      if (previousTurn) {
+        // Ensure both values are numbers before subtracting
+        const currentKw = parseFloat(turno.kw);
+        const previousKw = parseFloat(previousTurn.kw);
+        if (!isNaN(currentKw) && !isNaN(previousKw)) {
+          kwConsumidos = (currentKw - previousKw).toFixed(2);
+        }
+      }
+      return { ...turno, kwConsumidos };
+    });
+
+    turnos.value = processedTurnos;
+
   } catch (error) {
     notificationStore.show('Error al cargar los turnos.', 'error');
   } finally {
