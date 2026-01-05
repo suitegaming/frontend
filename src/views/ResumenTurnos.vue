@@ -42,7 +42,7 @@
                   <td>{{ turno.efectivo }}</td>
                   <td>{{ turno.yape }}</td>
                   <td>{{ turno.snacks }}</td>
-                  <td>{{ (turno.efectivo + turno.yape + turno.snacks).toFixed(2) }}</td>
+                  <td>{{ (turno.efectivo + turno.yape - turno.snacks).toFixed(2) }}</td>
                   <td>{{ turno.ingresoInventario }}</td>
                   <td>{{ turno.consumo }}</td>
                   <td>{{ turno.retiros }}</td>
@@ -82,8 +82,8 @@ const deletingTurnoId = ref(null);
 const isPageLoading = ref(true);
 
 const calculateRetirosPercentage = (turno) => {
-  const dineropcs = turno.efectivo + turno.yape + turno.snacks;
-  if (dineropcs === 0) {
+  const dineropcs = turno.efectivo + turno.yape - turno.snacks;
+  if (dineropcs <= 0) {
     return '0.00 %';
   }
   const percentage = (turno.retiros * 100) / dineropcs;
