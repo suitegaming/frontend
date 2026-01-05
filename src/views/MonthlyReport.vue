@@ -90,23 +90,29 @@
             <thead>
               <tr>
                 <th>Fecha</th>
-                <th>Ingresos</th>
-                <th>Gastos</th>
-                <th>Diferencia</th>
-                <th>Efectivo</th>
-                <th>Yape</th>
-                <th>Usuarios</th>
+                <th>DINEROPCS</th>
+                <th>DINEROPANCAFE</th>
+                <th>USANZAPANCAFE</th>
+                <th>EFECTIVO</th>
+                <th>YAPE</th>
+                <th>SNACKS</th>
+                <th>RETIROS</th>
+                <th>KWCONSUMIDOS</th>
+                <th>Diferencia (Descuadre)</th>
               </tr>
             </thead>
             <tbody>
               <tr v-for="day in report.dailySummaries" :key="day.date">
                 <td>{{ day.date }}</td>
-                <td>S/ {{ day.totalIngresos.toFixed(2) }}</td>
-                <td>S/ {{ day.totalGastos.toFixed(2) }}</td>
-                <td>S/ {{ day.diferenciaDia.toFixed(2) }}</td>
+                <td>S/ {{ calculateDineroPcs(day).toFixed(2) }}</td>
+                <td>S/ {{ day.totalDineroPancafe.toFixed(2) }}</td>
+                <td>S/ {{ day.totalUsanzaPancafe.toFixed(2) }}</td>
                 <td>S/ {{ day.totalEfectivo.toFixed(2) }}</td>
                 <td>S/ {{ day.totalYape.toFixed(2) }}</td>
-                <td>{{ day.totalUsuarios }}</td>
+                <td>S/ {{ day.totalSnacks.toFixed(2) }}</td>
+                <td>S/ {{ day.totalRetiros.toFixed(2) }}</td>
+                <td>{{ day.totalKw.toFixed(2) }}</td>
+                <td>S/ {{ day.diferenciaDia.toFixed(2) }}</td>
               </tr>
             </tbody>
           </v-table>
@@ -195,6 +201,10 @@ const userChartData = computed(() => {
     ],
   };
 });
+
+const calculateDineroPcs = (day) => {
+  return day.totalEfectivo + day.totalYape - day.totalSnacks;
+};
 
 const chartOptions = {
   responsive: true,
