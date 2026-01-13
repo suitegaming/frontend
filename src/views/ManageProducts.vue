@@ -13,6 +13,7 @@
           <thead>
             <tr>
               <th class="text-left">Name</th>
+              <th class="text-left">Description</th>
               <th class="text-left">Stock</th>
               <th class="text-left">Purchase Price</th>
               <th class="text-left">Selling Price</th>
@@ -22,6 +23,7 @@
           <tbody>
             <tr v-for="product in products" :key="product.id">
               <td>{{ product.name }}</td>
+              <td>{{ product.description }}</td>
               <td>{{ product.stock }}</td>
               <td>S/ {{ product.purchasePrice.toFixed(2) }}</td>
               <td>S/ {{ product.sellingPrice.toFixed(2) }}</td>
