@@ -115,6 +115,20 @@
                 <td>S/ {{ day.diferenciaDia.toFixed(2) }}</td>
               </tr>
             </tbody>
+            <tfoot>
+              <tr class="font-weight-bold bg-blue-grey-lighten-5">
+                <td><strong>Totales</strong></td>
+                <td><strong>S/ {{ totalDineroPcs.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalDineroPancafe.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalUsanzaPancafe.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalEfectivo.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalYape.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalSnacks.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalRetiros.toFixed(2) }}</strong></td>
+                <td><strong>{{ totalKwConsumidos.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalDiferenciaDia.toFixed(2) }}</strong></td>
+              </tr>
+            </tfoot>
           </v-table>
         </v-card-text>
       </v-card>
@@ -205,6 +219,44 @@ const userChartData = computed(() => {
 const calculateDineroPcs = (day) => {
   return day.totalEfectivo + day.totalYape - day.totalSnacks;
 };
+
+// Totals for the footer
+const totalDineroPcs = computed(() => {
+  if (!report.value?.dailySummaries) return 0;
+  return report.value.dailySummaries.reduce((acc, day) => acc + calculateDineroPcs(day), 0);
+});
+const totalDineroPancafe = computed(() => {
+  if (!report.value?.dailySummaries) return 0;
+  return report.value.dailySummaries.reduce((acc, day) => acc + day.totalDineroPancafe, 0);
+});
+const totalUsanzaPancafe = computed(() => {
+  if (!report.value?.dailySummaries) return 0;
+  return report.value.dailySummaries.reduce((acc, day) => acc + day.totalUsanzaPancafe, 0);
+});
+const totalEfectivo = computed(() => {
+  if (!report.value?.dailySummaries) return 0;
+  return report.value.dailySummaries.reduce((acc, day) => acc + day.totalEfectivo, 0);
+});
+const totalYape = computed(() => {
+  if (!report.value?.dailySummaries) return 0;
+  return report.value.dailySummaries.reduce((acc, day) => acc + day.totalYape, 0);
+});
+const totalSnacks = computed(() => {
+  if (!report.value?.dailySummaries) return 0;
+  return report.value.dailySummaries.reduce((acc, day) => acc + day.totalSnacks, 0);
+});
+const totalRetiros = computed(() => {
+  if (!report.value?.dailySummaries) return 0;
+  return report.value.dailySummaries.reduce((acc, day) => acc + day.totalRetiros, 0);
+});
+const totalKwConsumidos = computed(() => {
+  if (!report.value?.dailySummaries) return 0;
+  return report.value.dailySummaries.reduce((acc, day) => acc + day.kwConsumidos, 0);
+});
+const totalDiferenciaDia = computed(() => {
+  if (!report.value?.dailySummaries) return 0;
+  return report.value.dailySummaries.reduce((acc, day) => acc + day.diferenciaDia, 0);
+});
 
 const chartOptions = {
   responsive: true,
