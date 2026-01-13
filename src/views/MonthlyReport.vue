@@ -40,24 +40,24 @@
     </div>
 
     <div v-if="!isLoading && report">
-      <!-- Monthly Summary Cards -->
+      <!-- Averages Summary Cards -->
       <v-row>
         <v-col cols="12" md="4">
+          <v-card color="blue-lighten-5">
+            <v-card-title>Promedio DINEROPCS / Día</v-card-title>
+            <v-card-text class="text-h5">S/ {{ promedioDineroPcs.toFixed(2) }}</v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="4">
           <v-card color="green-lighten-5">
-            <v-card-title>Ingresos Totales</v-card-title>
-            <v-card-text class="text-h5">S/ {{ report.totalIngresosMes.toFixed(2) }}</v-card-text>
+            <v-card-title>Promedio Usanza Pancafe / Día</v-card-title>
+            <v-card-text class="text-h5">S/ {{ promedioUsanzaPancafe.toFixed(2) }}</v-card-text>
           </v-card>
         </v-col>
         <v-col cols="12" md="4">
-          <v-card color="red-lighten-5">
-            <v-card-title>Gastos Totales</v-card-title>
-            <v-card-text class="text-h5">S/ {{ report.totalGastosMes.toFixed(2) }}</v-card-text>
-          </v-card>
-        </v-col>
-        <v-col cols="12" md="4">
-          <v-card :color="report.diferenciaMes >= 0 ? 'blue-lighten-5' : 'orange-lighten-5'">
-            <v-card-title>Diferencia Total</v-card-title>
-            <v-card-text class="text-h5">S/ {{ report.diferenciaMes.toFixed(2) }}</v-card-text>
+          <v-card color="orange-lighten-5">
+            <v-card-title>Promedio Retiros / Día</v-card-title>
+            <v-card-text class="text-h5">S/ {{ promedioRetiros.toFixed(2) }}</v-card-text>
           </v-card>
         </v-col>
       </v-row>
@@ -102,6 +102,18 @@
               </tr>
             </thead>
             <tbody>
+              <tr class="font-weight-bold bg-blue-grey-lighten-5">
+                <td><strong>Totales</strong></td>
+                <td><strong>S/ {{ totalDineroPcs.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalDineroPancafe.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalUsanzaPancafe.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalEfectivo.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalYape.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalSnacks.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalRetiros.toFixed(2) }}</strong></td>
+                <td><strong>{{ totalKwConsumidos.toFixed(2) }}</strong></td>
+                <td><strong>S/ {{ totalDiferenciaDia.toFixed(2) }}</strong></td>
+              </tr>
               <tr v-for="day in report.dailySummaries" :key="day.date">
                 <td>{{ day.date }}</td>
                 <td>S/ {{ calculateDineroPcs(day).toFixed(2) }}</td>
@@ -115,20 +127,7 @@
                 <td>S/ {{ day.diferenciaDia.toFixed(2) }}</td>
               </tr>
             </tbody>
-            <tfoot>
-              <tr class="font-weight-bold bg-blue-grey-lighten-5">
-                <td><strong>Totales</strong></td>
-                <td><strong>S/ {{ totalDineroPcs.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalDineroPancafe.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalUsanzaPancafe.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalEfectivo.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalYape.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalSnacks.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalRetiros.toFixed(2) }}</strong></td>
-                <td><strong>{{ totalKwConsumidos.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalDiferenciaDia.toFixed(2) }}</strong></td>
-              </tr>
-            </tfoot>
+
           </v-table>
         </v-card-text>
       </v-card>
@@ -256,6 +255,24 @@ const totalKwConsumidos = computed(() => {
 const totalDiferenciaDia = computed(() => {
   if (!report.value?.dailySummaries) return 0;
   return report.value.dailySummaries.reduce((acc, day) => acc + day.diferenciaDia, 0);
+});
+
+// Averages for the new summary cards
+const numeroDeDias = computed(() => report.value?.dailySummaries?.length || 0);
+
+const promedioDineroPcs = computed(() => {
+  if (numeroDeDias.value === 0) return 0;
+  return totalDineroPcs.value / numeroDeDias.value;
+});
+
+const promedioUsanzaPancafe = computed(() => {
+  if (numeroDeDias.value === 0) return 0;
+  return totalUsanzaPancafe.value / numeroDeDias.value;
+});
+
+const promedioRetiros = computed(() => {
+  if (numeroDeDias.value === 0) return 0;
+  return totalRetiros.value / numeroDeDias.value;
 });
 
 const chartOptions = {
