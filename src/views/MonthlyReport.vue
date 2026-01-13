@@ -258,21 +258,28 @@ const totalDiferenciaDia = computed(() => {
 });
 
 // Averages for the new summary cards
-const numeroDeDias = computed(() => report.value?.dailySummaries?.length || 0);
-
 const promedioDineroPcs = computed(() => {
-  if (numeroDeDias.value === 0) return 0;
-  return totalDineroPcs.value / numeroDeDias.value;
+  if (!report.value?.dailySummaries) return 0;
+  const diasConValor = report.value.dailySummaries.filter(day => calculateDineroPcs(day) !== 0);
+  if (diasConValor.length === 0) return 0;
+  const total = diasConValor.reduce((acc, day) => acc + calculateDineroPcs(day), 0);
+  return total / diasConValor.length;
 });
 
 const promedioUsanzaPancafe = computed(() => {
-  if (numeroDeDias.value === 0) return 0;
-  return totalUsanzaPancafe.value / numeroDeDias.value;
+  if (!report.value?.dailySummaries) return 0;
+  const diasConValor = report.value.dailySummaries.filter(day => day.totalUsanzaPancafe !== 0);
+  if (diasConValor.length === 0) return 0;
+  const total = diasConValor.reduce((acc, day) => acc + day.totalUsanzaPancafe, 0);
+  return total / diasConValor.length;
 });
 
 const promedioRetiros = computed(() => {
-  if (numeroDeDias.value === 0) return 0;
-  return totalRetiros.value / numeroDeDias.value;
+  if (!report.value?.dailySummaries) return 0;
+  const diasConValor = report.value.dailySummaries.filter(day => day.totalRetiros !== 0);
+  if (diasConValor.length === 0) return 0;
+  const total = diasConValor.reduce((acc, day) => acc + day.totalRetiros, 0);
+  return total / diasConValor.length;
 });
 
 const chartOptions = {
