@@ -42,28 +42,36 @@
     <div v-if="!isLoading && report">
       <!-- Averages Summary Cards -->
       <v-row>
-        <v-col cols="12" md="3">
+        <v-col cols="12" md="4">
           <v-card color="blue-lighten-5">
             <v-card-title>Promedio DINEROPCS / Día</v-card-title>
             <v-card-text class="text-h5">S/ {{ promedioDineroPcs.toFixed(2) }}</v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="12" md="4">
           <v-card color="green-lighten-5">
             <v-card-title>Promedio Usanza Pancafe / Día</v-card-title>
             <v-card-text class="text-h5">S/ {{ promedioUsanzaPancafe.toFixed(2) }}</v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" md="3">
+        <v-col cols="12" md="4">
           <v-card color="orange-lighten-5">
             <v-card-title>Promedio Retiros / Día</v-card-title>
             <v-card-text class="text-h5">S/ {{ promedioRetiros.toFixed(2) }}</v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" md="3">
+      </v-row>
+      <v-row class="mt-4">
+        <v-col cols="12" md="6">
           <v-card color="purple-lighten-5">
             <v-card-title>Valor Total de Inventario</v-card-title>
             <v-card-text class="text-h5">S/ {{ totalInventoryValue.toFixed(2) }}</v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="6">
+          <v-card color="red-lighten-5">
+            <v-card-title>Total Gastos del Mes (sin depósitos)</v-card-title>
+            <v-card-text class="text-h5">S/ {{ report.totalGastosMes.toFixed(2) }}</v-card-text>
           </v-card>
         </v-col>
       </v-row>
