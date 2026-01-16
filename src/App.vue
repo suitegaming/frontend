@@ -34,6 +34,7 @@
             <v-list-item prepend-icon="mdi-package-variant-closed" title="Gestionar Productos" to="/manage-products"></v-list-item>
             <v-list-item prepend-icon="mdi-clipboard-list" title="Gestionar Tareas" to="/admin/tasks"></v-list-item>
             <v-list-item prepend-icon="mdi-chart-areaspline" title="Informe Mensual" to="/admin/monthly-report"></v-list-item>
+            <v-list-item prepend-icon="mdi-chart-line" title="Análisis de Ventas" to="/admin/analytics"></v-list-item>
           </div>
 
           <v-divider class="my-4"></v-divider>

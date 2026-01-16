@@ -7,6 +7,8 @@ export const useReportStore = defineStore('report', {
   state: () => ({
     monthlyReport: null,
     totalInventoryValue: 0,
+    bestSellers: [],
+    snackProfit: null,
   }),
   actions: {
     async fetchMonthlyReport(year, month) {
@@ -27,6 +29,30 @@ export const useReportStore = defineStore('report', {
         this.totalInventoryValue = response.data;
       } catch (error) {
         console.error('Error fetching total inventory value:', error);
+      }
+    },
+    async fetchBestSellers(startDate, endDate) {
+      try {
+        const response = await axios.get(`${API_URL}/reports/best-sellers`, {
+          params: { startDate, endDate }
+        });
+        this.bestSellers = response.data;
+        return response.data;
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || error.response?.data;
+        throw new Error(errorMessage || 'Failed to fetch best sellers report');
+      }
+    },
+    async fetchSnackProfit(startDate, endDate) {
+      try {
+        const response = await axios.get(`${API_URL}/reports/snack-profit`, {
+          params: { startDate, endDate }
+        });
+        this.snackProfit = response.data;
+        return response.data;
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || error.response?.data;
+        throw new Error(errorMessage || 'Failed to fetch snack profit report');
       }
     },
   },

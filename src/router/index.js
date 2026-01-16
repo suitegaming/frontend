@@ -71,6 +71,12 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
+    path: '/admin/analytics',
+    name: 'AnalyticsDashboard',
+    component: () => import('@/views/AnalyticsDashboard.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/my-tasks',
     name: 'MyTasks',
     component: () => import('@/views/MyTasks.vue'),
