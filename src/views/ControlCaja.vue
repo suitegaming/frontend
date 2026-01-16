@@ -3,19 +3,11 @@
     <h2 class="text-h4 mb-4">Control de Caja</h2>
 
     <v-row>
-      <v-col cols="12" md="6">
+      <v-col cols="12" md="12">
         <v-card class="mb-6">
           <v-card-title class="text-h5">Balance Actual</v-card-title>
           <v-card-text>
             <p class="text-h3" :class="balance >= 0 ? 'text-success' : 'text-error'">S/ {{ balance.toFixed(2) }}</p>
-          </v-card-text>
-        </v-card>
-      </v-col>
-      <v-col cols="12" md="6">
-        <v-card class="mb-6">
-          <v-card-title class="text-h5">Total Gastos (sin depósitos)</v-card-title>
-          <v-card-text>
-            <p class="text-h3 text-error">S/ {{ totalGastosFiltrados.toFixed(2) }}</p>
           </v-card-text>
         </v-card>
       </v-col>
@@ -89,12 +81,6 @@ const isPageLoading = ref(true);
 
 const balance = computed(() => cajaStore.balance);
 const gastos = computed(() => cajaStore.gastos);
-
-const totalGastosFiltrados = computed(() => {
-  return gastos.value
-    .filter(gasto => gasto.amount > 0 && !gasto.description.toLowerCase().startsWith('deposito'))
-    .reduce((total, gasto) => total + gasto.amount, 0);
-});
 
 const handleRegisterMovement = async () => {
   // Permitir montos negativos, pero no cero.
