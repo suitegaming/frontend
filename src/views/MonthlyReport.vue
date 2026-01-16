@@ -70,7 +70,7 @@
 
       <!-- Charts -->
       <v-row class="mt-6">
-        <v-col cols="12" md="6">
+        <v-col cols="12">
           <v-card>
             <v-card-title>Ingresos vs. Gastos Diarios</v-card-title>
             <v-card-text>
@@ -78,7 +78,9 @@
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" md="6">
+      </v-row>
+      <v-row class="mt-4">
+        <v-col cols="12">
           <v-card>
             <v-card-title>Usuarios por Día</v-card-title>
             <v-card-text>
