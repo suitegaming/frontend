@@ -98,6 +98,7 @@
                 <th>SNACKS</th>
                 <th>RETIROS</th>
                 <th>KWCONSUMIDOS</th>
+                <th>Ratio KW</th>
                 <th>Diferencia (Descuadre)</th>
               </tr>
             </thead>
@@ -112,6 +113,7 @@
                 <td><strong>S/ {{ totalSnacks.toFixed(2) }}</strong></td>
                 <td><strong>S/ {{ totalRetiros.toFixed(2) }}</strong></td>
                 <td><strong>{{ totalKwConsumidos.toFixed(2) }}</strong></td>
+                <td><strong>{{ report.promedioRatioKwMes.toFixed(2) }}</strong></td>
                 <td><strong>S/ {{ totalDiferenciaDia.toFixed(2) }}</strong></td>
               </tr>
               <tr v-for="day in report.dailySummaries" :key="day.date">
@@ -124,6 +126,7 @@
                 <td>S/ {{ day.totalSnacks.toFixed(2) }}</td>
                 <td>S/ {{ day.totalRetiros.toFixed(2) }}</td>
                 <td>{{ day.kwConsumidos.toFixed(2) }}</td>
+                <td>{{ day.ratioKw.toFixed(2) }}</td>
                 <td>S/ {{ day.diferenciaDia.toFixed(2) }}</td>
               </tr>
             </tbody>
