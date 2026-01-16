@@ -42,22 +42,28 @@
     <div v-if="!isLoading && report">
       <!-- Averages Summary Cards -->
       <v-row>
-        <v-col cols="12" md="4">
+        <v-col cols="12" md="3">
           <v-card color="blue-lighten-5">
             <v-card-title>Promedio DINEROPCS / Día</v-card-title>
             <v-card-text class="text-h5">S/ {{ promedioDineroPcs.toFixed(2) }}</v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" md="4">
+        <v-col cols="12" md="3">
           <v-card color="green-lighten-5">
             <v-card-title>Promedio Usanza Pancafe / Día</v-card-title>
             <v-card-text class="text-h5">S/ {{ promedioUsanzaPancafe.toFixed(2) }}</v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" md="4">
+        <v-col cols="12" md="3">
           <v-card color="orange-lighten-5">
             <v-card-title>Promedio Retiros / Día</v-card-title>
             <v-card-text class="text-h5">S/ {{ promedioRetiros.toFixed(2) }}</v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="3">
+          <v-card color="purple-lighten-5">
+            <v-card-title>Valor Total de Inventario</v-card-title>
+            <v-card-text class="text-h5">S/ {{ totalInventoryValue.toFixed(2) }}</v-card-text>
           </v-card>
         </v-col>
       </v-row>
@@ -142,7 +148,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useReportStore } from '@/stores/report';
 import { useNotificationStore } from '@/stores/notification';
 import { Bar, Line } from 'vue-chartjs';
@@ -155,6 +161,7 @@ const notificationStore = useNotificationStore();
 
 const isLoading = ref(false);
 const report = computed(() => reportStore.monthlyReport);
+const totalInventoryValue = computed(() => reportStore.totalInventoryValue);
 
 const currentYear = new Date().getFullYear();
 const selectedYear = ref(currentYear);
@@ -179,6 +186,10 @@ const generateReport = async () => {
     isLoading.value = false;
   }
 };
+
+onMounted(() => {
+  reportStore.fetchTotalInventoryValue();
+});
 
 const chartData = computed(() => {
   const labels = report.value?.dailySummaries.map(d => d.date) || [];
