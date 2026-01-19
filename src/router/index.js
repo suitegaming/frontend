@@ -35,6 +35,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/registrar-turno/edit/:id',
+    name: 'EditarTurno',
+    component: () => import('@/views/RegistrarTurno.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/resumen-turnos',
     name: 'ResumenTurnos',
     component: () => import('@/views/ResumenTurnos.vue'),

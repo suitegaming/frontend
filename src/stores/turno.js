@@ -31,6 +31,15 @@ export const useTurnoStore = defineStore('turno', {
         throw new Error(error.response?.data || 'Failed to fetch turno summary');
       }
     },
+    async updateTurno(id, turnoData) {
+      try {
+        const response = await axios.put(`${API_URL}/api/turnos/${id}`, turnoData);
+        return response.data;
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || error.response?.data;
+        throw new Error(errorMessage || 'Failed to update turno');
+      }
+    },
     async deleteTurno(id) {
       try {
         await axios.delete(`${API_URL}/api/turnos/${id}`);
