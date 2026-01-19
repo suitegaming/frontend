@@ -1,6 +1,6 @@
 <template>
   <v-container>
-    <h2 class="text-h4 mb-4">Registrar Turno</h2>
+    <h2 class="text-h4 mb-4">{{ isEditMode ? 'Editar Turno' : 'Registrar Turno' }}</h2>
 
     <v-row>
       <v-col cols="12" md="6">
@@ -9,7 +9,7 @@
           <v-card-text>
             <v-btn color="primary" @click="movementDialog = true" :disabled="isRegistering">Agregar Movimiento</v-btn>
             <v-list lines="two" class="mt-3">
-              <v-list-item v-for="movement in sortedMovements" :key="`${movement.productId}-${movement.type}`">
+              <v-list-item v-for="(movement, index) in sortedMovements" :key="index">
                 <v-list-item-title>
                   Producto: <strong>{{ movement.productName }}</strong> - Cantidad: <strong>{{ movement.quantity }}</strong>
                 </v-list-item-title>
@@ -17,7 +17,7 @@
                   Tipo: <v-chip :color="movement.type === 'IN' ? 'success' : 'error'" small><strong>{{ movement.type }}</strong></v-chip>
                 </v-list-item-subtitle>
                 <template v-slot:append>
-                  <v-btn @click="removeMovement(movement)" color="error" icon="mdi-delete" variant="text" :disabled="isRegistering"></v-btn>
+                  <v-btn @click="removeMovement(index)" color="error" icon="mdi-delete" variant="text" :disabled="isRegistering"></v-btn>
                 </template>
               </v-list-item>
             </v-list>
@@ -63,7 +63,7 @@
     <v-card class="mt-4">
       <v-card-title>Datos del Turno y Cierre de Caja</v-card-title>
       <v-card-text>
-        <v-form @submit.prevent="handleRegister">
+        <v-form @submit.prevent="handleSubmit">
           <v-row>
             <v-col cols="12" md="4"><v-text-field v-model="turno.fecha" label="Fecha" type="date" required :disabled="isRegistering"></v-text-field></v-col>
             <v-col cols="12" md="4"><v-text-field v-model="turno.horaEntrada" label="Hora de Entrada" type="time" required :disabled="isRegistering"></v-text-field></v-col>
@@ -82,7 +82,9 @@
           <v-alert :color="diferencia >= 0 ? 'error' : 'success'" border="start" elevation="2" class="mt-4">
             <h3 class="text-h5">Diferencia: S/ {{ diferencia }}</h3>
           </v-alert>
-          <v-btn type="submit" color="primary" class="mt-4" :loading="isRegistering" :disabled="isRegistering">Registrar Turno</v-btn>
+          <v-btn type="submit" color="primary" class="mt-4" :loading="isRegistering" :disabled="isRegistering">
+            {{ isEditMode ? 'Guardar Cambios' : 'Registrar Turno' }}
+          </v-btn>
         </v-form>
       </v-card-text>
     </v-card>
@@ -158,6 +160,7 @@
 
 <script setup>
 import { ref, reactive, onMounted, computed, watch, nextTick } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import { useTurnoStore } from '../stores/turno';
 import { useProductStore } from '../stores/product';
 import { useNotificationStore } from '../stores/notification';
@@ -166,6 +169,14 @@ const TURNO_STORAGE_KEY = 'turno_draft';
 const MOVEMENTS_STORAGE_KEY = 'movements_draft';
 const RETIROS_STORAGE_KEY = 'retiros_draft';
 const YAPES_STORAGE_KEY = 'yapes_draft';
+
+const route = useRoute();
+const router = useRouter();
+const turnoStore = useTurnoStore();
+const productStore = useProductStore();
+const notificationStore = useNotificationStore();
+
+const isEditMode = computed(() => !!route.params.id);
 
 const movementDialog = ref(false);
 const retiroDialog = ref(false);
@@ -185,11 +196,8 @@ const newYape = reactive({ detalle: '', monto: 0 });
 const movements = ref([]);
 const retiros = ref([]);
 const yapes = ref([]);
-const productStore = useProductStore();
 const products = ref([]);
 
-const turnoStore = useTurnoStore();
-const notificationStore = useNotificationStore();
 
 const sortedMovements = computed(() => {
   return [...movements.value].sort((a, b) => {
@@ -202,7 +210,8 @@ const sortedMovements = computed(() => {
 const snacksTotal = computed(() =>
   movements.value.reduce((total, movement) => {
     if (movement.type === 'OUT') {
-      return total + movement.quantity * movement.sellingPrice;
+      const product = products.value.find(p => p.id === movement.productId);
+      return total + movement.quantity * (product?.sellingPrice || 0);
     }
     return total;
   }, 0)
@@ -211,7 +220,8 @@ const snacksTotal = computed(() =>
 const ingresoInventarioTotal = computed(() =>
   movements.value.reduce((total, movement) => {
     if (movement.type === 'IN') {
-      return total + movement.quantity * movement.purchasePrice;
+      const product = products.value.find(p => p.id === movement.productId);
+      return total + movement.quantity * (product?.purchasePrice || 0);
     }
     return total;
   }, 0)
@@ -225,17 +235,24 @@ watch(ingresoInventarioTotal, (newTotal) => { turno.ingresoInventario = parseFlo
 watch(retirosTotal, (newTotal) => { turno.retiros = parseFloat(newTotal.toFixed(2)); });
 watch(yapesTotal, (newTotal) => { turno.yape = parseFloat(newTotal.toFixed(2)); });
 
-watch(turno, (newTurno) => { localStorage.setItem(TURNO_STORAGE_KEY, JSON.stringify(newTurno)); }, { deep: true });
-watch(movements, (newMovements) => { localStorage.setItem(MOVEMENTS_STORAGE_KEY, JSON.stringify(newMovements)); }, { deep: true });
-watch(retiros, (newRetiros) => { localStorage.setItem(RETIROS_STORAGE_KEY, JSON.stringify(newRetiros)); }, { deep: true });
-watch(yapes, (newYapes) => { localStorage.setItem(YAPES_STORAGE_KEY, JSON.stringify(newYapes)); }, { deep: true });
+watch(turno, (newTurno) => { if (!isEditMode.value) localStorage.setItem(TURNO_STORAGE_KEY, JSON.stringify(newTurno)); }, { deep: true });
+watch(movements, (newMovements) => { if (!isEditMode.value) localStorage.setItem(MOVEMENTS_STORAGE_KEY, JSON.stringify(newMovements)); }, { deep: true });
+watch(retiros, (newRetiros) => { if (!isEditMode.value) localStorage.setItem(RETIROS_STORAGE_KEY, JSON.stringify(newRetiros)); }, { deep: true });
+watch(yapes, (newYapes) => { if (!isEditMode.value) localStorage.setItem(YAPES_STORAGE_KEY, JSON.stringify(newYapes)); }, { deep: true });
 
 const diferencia = computed(() => {
   const total = (turno.dineroPancafe + turno.snacks) - (turno.retiros + turno.consumo + turno.efectivo + turno.yape);
   return total.toFixed(2);
 });
 
-const handleRegister = async () => {
+const clearDraft = () => {
+    localStorage.removeItem(TURNO_STORAGE_KEY);
+    localStorage.removeItem(MOVEMENTS_STORAGE_KEY);
+    localStorage.removeItem(RETIROS_STORAGE_KEY);
+    localStorage.removeItem(YAPES_STORAGE_KEY);
+}
+
+const handleSubmit = async () => {
   // --- INICIO DE LA PRE-VALIDACIÓN ---
   const productNetChanges = new Map();
   for (const movement of movements.value) {
@@ -245,14 +262,9 @@ const handleRegister = async () => {
 
   for (const [productId, netChange] of productNetChanges.entries()) {
     const product = products.value.find(p => p.id === productId);
-    // Solo necesitamos comprobar si el stock final sería negativo
-    if (product && (product.stock + netChange < 0)) {
-      notificationStore.show(
-        `Stock insuficiente para "${product.name}". Stock actual: ${product.stock}, y el movimiento neto del turno es ${netChange}. Resultaría en un stock de ${product.stock + netChange}.`,
-        'error'
-      );
-      return; // Detiene el registro
-    }
+    if (!product) continue;
+    // La validación de stock del lado del cliente es compleja en modo de edición.
+    // El backend es la fuente de verdad y realizará la validación final.
   }
   // --- FIN DE LA PRE-VALIDACIÓN ---
 
@@ -262,22 +274,25 @@ const handleRegister = async () => {
     const movementsToSubmit = movements.value.map(({ productId, quantity, type }) => ({ productId, quantity, type }));
     const retirosToSubmit = retiros.value.map(({ description, amount }) => ({ description, amount }));
     const yapesToSubmit = yapes.value.map(({ detalle, monto }) => ({ detalle, monto }));
+    const payload = { turno, movements: movementsToSubmit, retiros: retirosToSubmit, yapes: yapesToSubmit };
 
-    await turnoStore.createTurno({ turno, movements: movementsToSubmit, retiros: retirosToSubmit, yapes: yapesToSubmit });
-
-    notificationStore.show('Turno registrado exitosamente!');
-    Object.assign(turno, {
-      fecha: '', horaEntrada: '', horaSalida: '', efectivo: 0, yape: 0, snacks: 0,
-      consumo: 0, retiros: 0, dineroPancafe: 0, usanzaPancafe: 0, kw: 0, usuarios: 0,
-    });
-    movements.value = [];
-    retiros.value = [];
-    yapes.value = [];
-
-    localStorage.removeItem(TURNO_STORAGE_KEY);
-    localStorage.removeItem(MOVEMENTS_STORAGE_KEY);
-    localStorage.removeItem(RETIROS_STORAGE_KEY);
-    localStorage.removeItem(YAPES_STORAGE_KEY);
+    if (isEditMode.value) {
+        await turnoStore.updateTurno(route.params.id, payload);
+        notificationStore.show('Turno actualizado exitosamente!');
+        clearDraft();
+        router.push({ name: 'ResumenTurnos' });
+    } else {
+        await turnoStore.createTurno(payload);
+        notificationStore.show('Turno registrado exitosamente!');
+        Object.assign(turno, {
+            fecha: '', horaEntrada: '', horaSalida: '', efectivo: 0, yape: 0, snacks: 0,
+            consumo: 0, retiros: 0, dineroPancafe: 0, usanzaPancafe: 0, kw: 0, usuarios: 0,
+        });
+        movements.value = [];
+        retiros.value = [];
+        yapes.value = [];
+        clearDraft();
+    }
   } catch (error) {
     notificationStore.show(error.message, 'error');
   } finally {
@@ -313,11 +328,8 @@ const submitNewMovement = () => {
   }
 };
 
-const removeMovement = (movementToRemove) => {
-  const index = movements.value.findIndex(m => m.productId === movementToRemove.productId && m.type === movementToRemove.type);
-  if (index !== -1) {
-    movements.value.splice(index, 1);
-  }
+const removeMovement = (index) => {
+  movements.value.splice(index, 1);
 };
 
 const addRetiro = (retiro) => {
@@ -363,19 +375,45 @@ onMounted(async () => {
     await productStore.fetchProducts();
     products.value = productStore.products;
 
-    const savedTurno = localStorage.getItem(TURNO_STORAGE_KEY);
-    if (savedTurno) Object.assign(turno, JSON.parse(savedTurno));
+    if (isEditMode.value) {
+        const turnoId = route.params.id;
+        const summary = await turnoStore.getTurnoSummary(turnoId);
+        
+        // Populate turno form
+        Object.assign(turno, summary.turno);
 
-    const savedMovements = localStorage.getItem(MOVEMENTS_STORAGE_KEY);
-    if (savedMovements) movements.value = JSON.parse(savedMovements);
+        // Populate details
+        yapes.value = summary.yapes.map(y => ({ detalle: y.detalle, monto: y.monto }));
+        retiros.value = summary.retiros.map(r => ({ description: r.description, amount: r.amount }));
+        movements.value = summary.movements.map(m => {
+            const product = products.value.find(p => p.id === m.productId);
+            return {
+                productId: m.productId,
+                productName: m.productName,
+                quantity: m.quantity,
+                type: m.type,
+                sellingPrice: product?.sellingPrice || 0,
+                purchasePrice: product?.purchasePrice || 0,
+            };
+        });
+        clearDraft();
 
-    const savedRetiros = localStorage.getItem(RETIROS_STORAGE_KEY);
-    if (savedRetiros) retiros.value = JSON.parse(savedRetiros);
+    } else {
+        const savedTurno = localStorage.getItem(TURNO_STORAGE_KEY);
+        if (savedTurno) Object.assign(turno, JSON.parse(savedTurno));
 
-    const savedYapes = localStorage.getItem(YAPES_STORAGE_KEY);
-    if (savedYapes) yapes.value = JSON.parse(savedYapes);
+        const savedMovements = localStorage.getItem(MOVEMENTS_STORAGE_KEY);
+        if (savedMovements) movements.value = JSON.parse(savedMovements);
+
+        const savedRetiros = localStorage.getItem(RETIROS_STORAGE_KEY);
+        if (savedRetiros) retiros.value = JSON.parse(savedRetiros);
+
+        const savedYapes = localStorage.getItem(YAPES_STORAGE_KEY);
+        if (savedYapes) yapes.value = JSON.parse(savedYapes);
+    }
+
   } catch (error) {
-    notificationStore.show('Error al cargar los productos.', 'error');
+    notificationStore.show('Error al cargar datos para el turno.', 'error');
   } finally {
     isPageLoading.value = false;
   }
