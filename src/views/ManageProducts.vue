@@ -1,39 +1,31 @@
 <template>
   <v-container>
-    <h2 class="text-h4 mb-4">Manage Products</h2>
+    <h2 class="text-h4 mb-4">Gestionar Productos</h2>
 
     <v-card>
       <v-card-title>
-        Product List
+        Lista de Productos
         <v-spacer></v-spacer>
-        <v-btn color="primary" @click="openCreateDialog">New Product</v-btn>
+        <v-btn color="primary" @click="openCreateDialog">Nuevo Producto</v-btn>
       </v-card-title>
       <v-card-text>
-        <v-table>
-          <thead>
-            <tr>
-              <th class="text-left">Name</th>
-              <th class="text-left">Description</th>
-              <th class="text-left">Stock</th>
-              <th class="text-left">Purchase Price</th>
-              <th class="text-left">Selling Price</th>
-              <th class="text-left">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="product in products" :key="product.id">
-              <td>{{ product.name }}</td>
-              <td>{{ product.description }}</td>
-              <td>{{ product.stock }}</td>
-              <td>S/ {{ product.purchasePrice.toFixed(2) }}</td>
-              <td>S/ {{ product.sellingPrice.toFixed(2) }}</td>
-              <td>
-                <v-btn icon="mdi-pencil" variant="text" color="primary" @click="openEditDialog(product)"></v-btn>
-                <v-btn icon="mdi-delete" variant="text" color="error" @click="openDeleteDialog(product)"></v-btn>
-              </td>
-            </tr>
-          </tbody>
-        </v-table>
+        <v-data-table
+          :headers="headers"
+          :items="products"
+          :items-per-page="10"
+          class="elevation-1"
+        >
+          <template v-slot:item.purchasePrice="{ value }">
+            S/ {{ value.toFixed(2) }}
+          </template>
+          <template v-slot:item.sellingPrice="{ value }">
+            S/ {{ value.toFixed(2) }}
+          </template>
+          <template v-slot:item.actions="{ item }">
+            <v-btn icon="mdi-pencil" variant="text" color="primary" @click="openEditDialog(item)"></v-btn>
+            <v-btn icon="mdi-delete" variant="text" color="error" @click="openDeleteDialog(item)"></v-btn>
+          </template>
+        </v-data-table>
       </v-card-text>
     </v-card>
 
@@ -41,21 +33,21 @@
     <v-dialog v-model="dialog" persistent max-width="600px">
       <v-card>
         <v-card-title>
-          <span class="text-h5">{{ isEditing ? 'Edit Product' : 'New Product' }}</span>
+          <span class="text-h5">{{ isEditing ? 'Editar Producto' : 'Nuevo Producto' }}</span>
         </v-card-title>
         <v-card-text>
           <v-form ref="form">
-            <v-text-field v-model="editableProduct.name" label="Product Name" required></v-text-field>
-            <v-text-field v-model="editableProduct.description" label="Description"></v-text-field>
+            <v-text-field v-model="editableProduct.name" label="Nombre del Producto" required></v-text-field>
+            <v-text-field v-model="editableProduct.description" label="Descripción"></v-text-field>
             <v-text-field v-model.number="editableProduct.stock" label="Stock" type="number" required></v-text-field>
-            <v-text-field v-model.number="editableProduct.purchasePrice" label="Purchase Price" type="number" step="0.01" required></v-text-field>
-            <v-text-field v-model.number="editableProduct.sellingPrice" label="Selling Price" type="number" step="0.01" required></v-text-field>
+            <v-text-field v-model.number="editableProduct.purchasePrice" label="Precio de Compra" type="number" step="0.01" required></v-text-field>
+            <v-text-field v-model.number="editableProduct.sellingPrice" label="Precio de Venta" type="number" step="0.01" required></v-text-field>
           </v-form>
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="closeDialog">Cancel</v-btn>
-          <v-btn color="blue darken-1" text @click="saveProduct" :loading="isSaving">Save</v-btn>
+          <v-btn color="blue darken-1" text @click="closeDialog">Cancelar</v-btn>
+          <v-btn color="blue darken-1" text @click="saveProduct" :loading="isSaving">Guardar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -63,12 +55,12 @@
     <!-- Delete Confirmation Dialog -->
     <v-dialog v-model="deleteDialog" persistent max-width="500px">
       <v-card>
-        <v-card-title class="text-h5">Are you sure?</v-card-title>
-        <v-card-text>Do you really want to delete this product? This process cannot be undone.</v-card-text>
+        <v-card-title class="text-h5">¿Estás seguro?</v-card-title>
+        <v-card-text>¿Realmente quieres eliminar este producto? Este proceso no se puede deshacer.</v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="closeDeleteDialog">Cancel</v-btn>
-          <v-btn color="red darken-1" text @click="confirmDelete" :loading="isDeleting">Delete</v-btn>
+          <v-btn color="blue darken-1" text @click="closeDeleteDialog">Cancelar</v-btn>
+          <v-btn color="red darken-1" text @click="confirmDelete" :loading="isDeleting">Eliminar</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -85,6 +77,15 @@ const productStore = useProductStore();
 const notificationStore = useNotificationStore();
 
 const products = computed(() => productStore.products);
+
+const headers = [
+  { title: 'Nombre', key: 'name' },
+  { title: 'Descripción', key: 'description' },
+  { title: 'Stock', key: 'stock' },
+  { title: 'Precio de Compra', key: 'purchasePrice' },
+  { title: 'Precio de Venta', key: 'sellingPrice' },
+  { title: 'Acciones', key: 'actions', sortable: false },
+];
 
 const dialog = ref(false);
 const deleteDialog = ref(false);
@@ -118,10 +119,10 @@ const saveProduct = async () => {
   try {
     if (isEditing.value) {
       await productStore.updateProduct(editableProduct.value);
-      notificationStore.show('Product updated successfully!');
+      notificationStore.show('Producto actualizado exitosamente!');
     } else {
       await productStore.createProduct(editableProduct.value);
-      notificationStore.show('Product created successfully!');
+      notificationStore.show('Producto creado exitosamente!');
     }
     await productStore.fetchProducts();
     closeDialog();
@@ -147,7 +148,7 @@ const confirmDelete = async () => {
   await nextTick();
   try {
     await productStore.deleteProduct(productToDelete.value.id);
-    notificationStore.show('Product deleted successfully!');
+    notificationStore.show('Producto eliminado exitosamente!');
     await productStore.fetchProducts();
     closeDeleteDialog();
   } catch (error) {
