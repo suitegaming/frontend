@@ -102,6 +102,14 @@
             label="Buscar Producto"
             placeholder="Escribe para buscar..."
           ></v-autocomplete>
+
+          <v-alert v-if="selectedProductForMovement" color="info" variant="tonal" density="compact" class="mb-4">
+            <div class="d-flex justify-space-between align-center">
+              <span>Precio: <strong>S/ {{ selectedProductForMovement.sellingPrice.toFixed(2) }}</strong></span>
+              <span>Stock: <strong>{{ selectedProductForMovement.stock }}</strong></span>
+            </div>
+          </v-alert>
+
           <v-text-field v-model.number="newMovement.quantity" label="Cantidad" type="number" required></v-text-field>
           <v-select v-model="newMovement.type" :items="['IN', 'OUT']" label="Tipo de Movimiento"></v-select>
         </v-card-text>
@@ -198,6 +206,9 @@ const retiros = ref([]);
 const yapes = ref([]);
 const products = ref([]);
 
+const selectedProductForMovement = computed(() => {
+  return products.value.find(p => p.id === newMovement.productId);
+});
 
 const sortedMovements = computed(() => {
   return [...movements.value].sort((a, b) => {
