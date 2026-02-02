@@ -5,62 +5,131 @@
       <p>Cargando Resumen de Turnos...</p>
     </div>
     <div v-else>
-      <h2 class="text-h4 mb-4">Resumen de Turnos</h2>
+      <h2 class="text-h4 mb-4">Resumen de Turnos y Métricas</h2>
+
+      <!-- Filtros -->
+      <v-card class="mb-6 bg-grey-lighten-4">
+        <v-card-text>
+          <v-row dense align="center">
+            <v-col cols="12" md="3">
+              <v-select
+                v-model="selectedUser"
+                :items="availableUsers"
+                label="Filtrar por Usuario"
+                hide-details
+                density="compact"
+                variant="outlined"
+                bg-color="white"
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-select
+                v-model="selectedMonth"
+                :items="months"
+                item-title="text"
+                item-value="value"
+                label="Mes"
+                hide-details
+                density="compact"
+                variant="outlined"
+                bg-color="white"
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="3">
+              <v-select
+                v-model="selectedYear"
+                :items="years"
+                label="Año"
+                hide-details
+                density="compact"
+                variant="outlined"
+                bg-color="white"
+              ></v-select>
+            </v-col>
+            <v-col cols="12" md="3" class="text-right">
+              <v-btn color="secondary" variant="text" @click="resetFilters">Limpiar Filtros</v-btn>
+            </v-col>
+          </v-row>
+        </v-card-text>
+      </v-card>
+
+      <!-- Tarjetas de Resumen (Métricas) -->
+      <v-row class="mb-4">
+        <v-col cols="12" sm="6" md="3">
+          <v-card color="blue-darken-1" theme="dark">
+            <v-card-title class="text-subtitle-2">Total Dinero PCs</v-card-title>
+            <v-card-text class="text-h5 font-weight-bold">
+              S/ {{ metrics.totalDineroPcs.toFixed(2) }}
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-card color="green-darken-1" theme="dark">
+            <v-card-title class="text-subtitle-2">Total Efectivo Recaudado</v-card-title>
+            <v-card-text class="text-h5 font-weight-bold">
+              S/ {{ metrics.totalEfectivo.toFixed(2) }}
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-card color="purple-darken-1" theme="dark">
+            <v-card-title class="text-subtitle-2">Total Yape</v-card-title>
+            <v-card-text class="text-h5 font-weight-bold">
+              S/ {{ metrics.totalYape.toFixed(2) }}
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="6" md="3">
+          <v-card :color="metrics.totalDiferencia >= 0 ? 'red-darken-2' : 'teal-darken-2'" theme="dark">
+            <v-card-title class="text-subtitle-2">Diferencia Total (Descuadre)</v-card-title>
+            <v-card-text class="text-h5 font-weight-bold">
+              S/ {{ metrics.totalDiferencia.toFixed(2) }}
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
+
+      <!-- Tabla de Datos -->
       <v-card>
         <v-card-text>
-          <v-responsive>
-            <v-table>
+            <v-table density="compact" hover>
               <thead>
                 <tr>
                   <th class="text-left">Registrado por</th>
                   <th class="text-left">Fecha</th>
-                  <th class="text-left">Hora Entrada</th>
-                  <th class="text-left">Hora Salida</th>
-                  <th class="text-left">Efectivo</th>
-                  <th class="text-left">Yape</th>
-                  <th class="text-left">Snacks</th>
+                  <th class="text-left">Horario</th>
+                  <th class="text-left text-green">Efectivo</th>
+                  <th class="text-left text-purple">Yape</th>
                   <th class="text-left">DINEROPCS</th>
-                  <th class="text-left">Ingreso Inventario</th>
-                  <th class="text-left">Consumo</th>
                   <th class="text-left">Retiros</th>
-                  <th class="text-left">% Retiros</th>
-                  <th class="text-left">Dinero Pancafe</th>
-                  <th class="text-left">Usanza Pancafe</th>
-                  <th class="text-left">KW</th>
-                  <th class="text-left">KW Consumidos</th>
-                  <th class="text-left">Usuarios</th>
+                  <th class="text-left">KW Cons.</th>
                   <th class="text-left">Diferencia</th>
                   <th v-if="authStore.isAdmin" class="text-left">Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="turno in turnos" :key="turno.id" @click="showTurnoSummary(turno.id)">
-                  <td>{{ turno.userName }}</td>
-                  <td>{{ turno.fecha }}</td>
-                  <td>{{ turno.horaEntrada }}</td>
-                  <td>{{ turno.horaSalida }}</td>
-                  <td>{{ turno.efectivo }}</td>
-                  <td>{{ turno.yape }}</td>
-                  <td>{{ turno.snacks }}</td>
+                <tr v-for="turno in filteredTurnos" :key="turno.id" @click="showTurnoSummary(turno.id)" style="cursor: pointer">
+                  <td class="font-weight-medium">{{ turno.userName }}</td>
+                  <td>{{ formatDate(turno.fecha) }}</td>
+                  <td class="text-caption">{{ turno.horaEntrada }} - {{ turno.horaSalida }}</td>
+                  <td class="text-green-darken-2 font-weight-bold">{{ turno.efectivo.toFixed(2) }}</td>
+                  <td class="text-purple-darken-2">{{ turno.yape.toFixed(2) }}</td>
                   <td>{{ (turno.efectivo + turno.yape - turno.snacks).toFixed(2) }}</td>
-                  <td>{{ turno.ingresoInventario }}</td>
-                  <td>{{ turno.consumo }}</td>
-                  <td>{{ turno.retiros }}</td>
-                  <td>{{ calculateRetirosPercentage(turno) }}</td>
-                  <td>{{ turno.dineroPancafe }}</td>
-                  <td>{{ turno.usanzaPancafe }}</td>
-                  <td>{{ turno.kw }}</td>
+                  <td>{{ turno.retiros.toFixed(2) }}</td>
                   <td>{{ turno.kwConsumidos }}</td>
-                  <td>{{ turno.usuarios }}</td>
-                  <td>{{ (turno.dineroPancafe + turno.snacks - turno.retiros - turno.consumo - turno.efectivo - turno.yape).toFixed(2) }}</td>
-                  <td v-if="authStore.isAdmin">
-                    <v-btn @click.stop="editTurno(turno.id)" color="primary" class="mr-2">Editar</v-btn>
-                    <v-btn @click.stop="deleteTurno(turno.id)" color="error" :loading="deletingTurnoId === turno.id" :disabled="!!deletingTurnoId">Eliminar</v-btn>
+                  <td :class="calculateDiferencia(turno) >= 0 ? 'text-red font-weight-bold' : 'text-teal'">
+                    {{ calculateDiferencia(turno).toFixed(2) }}
                   </td>
+                  <td v-if="authStore.isAdmin">
+                    <v-btn icon="mdi-pencil" size="small" variant="text" color="primary" @click.stop="editTurno(turno.id)"></v-btn>
+                    <v-btn icon="mdi-delete" size="small" variant="text" color="error" @click.stop="deleteTurno(turno.id)" :loading="deletingTurnoId === turno.id" :disabled="!!deletingTurnoId"></v-btn>
+                  </td>
+                </tr>
+                <tr v-if="filteredTurnos.length === 0">
+                  <td colspan="10" class="text-center text-grey pa-4">No se encontraron turnos con los filtros seleccionados.</td>
                 </tr>
               </tbody>
             </v-table>
-          </v-responsive>
         </v-card-text>
       </v-card>
     </div>
@@ -68,7 +137,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick } from 'vue';
+import { ref, onMounted, nextTick, computed } from 'vue';
 import { useTurnoStore } from '../stores/turno';
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
@@ -82,29 +151,87 @@ const notificationStore = useNotificationStore();
 const deletingTurnoId = ref(null);
 const isPageLoading = ref(true);
 
-const calculateRetirosPercentage = (turno) => {
-  const dineropcs = turno.efectivo + turno.yape - turno.snacks;
-  if (dineropcs <= 0) {
-    return '0.00 %';
-  }
-  const percentage = (turno.retiros * 100) / dineropcs;
-  return percentage.toFixed(2) + ' %';
+// --- Filtros ---
+const currentYear = new Date().getFullYear();
+const selectedYear = ref(currentYear);
+const selectedMonth = ref(new Date().getMonth() + 1); // 1-12
+const selectedUser = ref('Todos');
+
+const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
+const months = [
+  { text: 'Todos', value: 'all' },
+  { text: 'Enero', value: 1 }, { text: 'Febrero', value: 2 }, { text: 'Marzo', value: 3 },
+  { text: 'Abril', value: 4 }, { text: 'Mayo', value: 5 }, { text: 'Junio', value: 6 },
+  { text: 'Julio', value: 7 }, { text: 'Agosto', value: 8 }, { text: 'Septiembre', value: 9 },
+  { text: 'Octubre', value: 10 }, { text: 'Noviembre', value: 11 }, { text: 'Diciembre', value: 12 },
+];
+
+// Obtener usuarios únicos de los turnos cargados
+const availableUsers = computed(() => {
+  const users = new Set(turnos.value.map(t => t.userName));
+  return ['Todos', ...Array.from(users)];
+});
+
+// --- Lógica de Filtrado y Métricas ---
+
+const calculateDiferencia = (turno) => {
+  return (turno.dineroPancafe + turno.snacks - turno.retiros - turno.consumo - turno.efectivo - turno.yape);
 };
+
+const filteredTurnos = computed(() => {
+  return turnos.value.filter(turno => {
+    const turnoDate = new Date(turno.fecha);
+    // Ajuste de zona horaria simple o uso de componentes de fecha locales
+    // Nota: 'turno.fecha' viene como YYYY-MM-DD string usualmente.
+    // Usamos split para evitar problemas de zona horaria al crear Date
+    const [year, month] = turno.fecha.split('-').map(Number);
+    
+    const matchYear = selectedYear.value === 'all' || year === selectedYear.value;
+    const matchMonth = selectedMonth.value === 'all' || month === selectedMonth.value;
+    const matchUser = selectedUser.value === 'Todos' || turno.userName === selectedUser.value;
+
+    return matchYear && matchMonth && matchUser;
+  });
+});
+
+const metrics = computed(() => {
+  const data = filteredTurnos.value;
+  return data.reduce((acc, turno) => {
+    acc.totalEfectivo += turno.efectivo;
+    acc.totalYape += turno.yape;
+    // Dinero PCS = Efectivo + Yape - Snacks (aprox, según lógica previa)
+    acc.totalDineroPcs += (turno.efectivo + turno.yape - turno.snacks); 
+    acc.totalDiferencia += calculateDiferencia(turno);
+    return acc;
+  }, { totalEfectivo: 0, totalYape: 0, totalDineroPcs: 0, totalDiferencia: 0 });
+});
+
+const resetFilters = () => {
+  selectedYear.value = currentYear;
+  selectedMonth.value = new Date().getMonth() + 1;
+  selectedUser.value = 'Todos';
+};
+
+const formatDate = (dateStr) => {
+  if (!dateStr) return '';
+  const [year, month, day] = dateStr.split('-');
+  return `${day}/${month}/${year}`;
+};
+
+// --- Carga de Datos ---
 
 const fetchTurnos = async () => {
   isPageLoading.value = true;
   try {
     const fetchedTurnos = await turnoStore.getTurnos();
-    // Sort by ID in descending order to show the latest first
+    // Ordenar descendente por ID
     const sortedTurnos = fetchedTurnos.sort((a, b) => b.id - a.id);
 
-    // Process the array to add the calculated 'kwConsumidos' property
+    // Procesar KW Consumidos (lógica mantenida)
     const processedTurnos = sortedTurnos.map((turno, index) => {
-      // The "previous" turn is the next one in the array because of the descending sort
       const previousTurn = sortedTurnos[index + 1];
-      let kwConsumidos = 'N/A'; // Default value for the last turn in the list
+      let kwConsumidos = 'N/A';
       if (previousTurn) {
-        // Ensure both values are numbers before subtracting
         const currentKw = parseFloat(turno.kw);
         const previousKw = parseFloat(previousTurn.kw);
         if (!isNaN(currentKw) && !isNaN(previousKw)) {
@@ -132,7 +259,7 @@ const deleteTurno = async (id) => {
   await nextTick();
   try {
     await turnoStore.deleteTurno(id);
-    await fetchTurnos(); // Recargar la lista después de eliminar
+    await fetchTurnos(); 
     notificationStore.show('Turno eliminado correctamente.');
   } catch (error) {
     notificationStore.show(error.message, 'error');
