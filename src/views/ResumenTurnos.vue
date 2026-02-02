@@ -11,15 +11,18 @@
       <v-card class="mb-6 bg-grey-lighten-4">
         <v-card-text>
           <v-row dense align="center">
-            <v-col cols="12" md="3">
+            <v-col cols="12" md="4">
               <v-select
                 v-model="selectedUser"
                 :items="availableUsers"
-                label="Filtrar por Usuario"
+                label="Filtrar por Usuario(s)"
                 hide-details
                 density="compact"
                 variant="outlined"
                 bg-color="white"
+                multiple
+                chips
+                closable-chips
               ></v-select>
             </v-col>
             <v-col cols="12" md="3">
@@ -46,7 +49,7 @@
                 bg-color="white"
               ></v-select>
             </v-col>
-            <v-col cols="12" md="3" class="text-right">
+            <v-col cols="12" md="2" class="text-right">
               <v-btn color="secondary" variant="text" @click="resetFilters">Limpiar Filtros</v-btn>
             </v-col>
           </v-row>
@@ -55,33 +58,52 @@
 
       <!-- Tarjetas de Resumen (Métricas) -->
       <v-row class="mb-4">
-        <v-col cols="12" sm="6" md="3">
-          <v-card color="blue-darken-1" theme="dark">
-            <v-card-title class="text-subtitle-2">Total Dinero PCs</v-card-title>
+        <!-- Métricas de Trabajo -->
+        <v-col cols="12" sm="6" md="2">
+          <v-card color="indigo-lighten-1" theme="dark" height="100%">
+            <v-card-title class="text-caption">Días Trabajados</v-card-title>
             <v-card-text class="text-h5 font-weight-bold">
-              S/ {{ metrics.totalDineroPcs.toFixed(2) }}
+              {{ metrics.diasTrabajados }}
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" sm="6" md="3">
-          <v-card color="green-darken-1" theme="dark">
-            <v-card-title class="text-subtitle-2">Total Efectivo Recaudado</v-card-title>
+         <v-col cols="12" sm="6" md="2">
+          <v-card color="deep-orange-lighten-1" theme="dark" height="100%">
+            <v-card-title class="text-caption">Total Consumos</v-card-title>
+            <v-card-text class="text-h5 font-weight-bold">
+              S/ {{ metrics.totalConsumo.toFixed(2) }}
+            </v-card-text>
+          </v-card>
+        </v-col>
+
+        <!-- Métricas Financieras -->
+        <v-col cols="12" sm="6" md="2">
+          <v-card color="green-darken-1" theme="dark" height="100%">
+            <v-card-title class="text-caption">Efectivo Total</v-card-title>
             <v-card-text class="text-h5 font-weight-bold">
               S/ {{ metrics.totalEfectivo.toFixed(2) }}
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" sm="6" md="3">
-          <v-card color="purple-darken-1" theme="dark">
-            <v-card-title class="text-subtitle-2">Total Yape</v-card-title>
+        <v-col cols="12" sm="6" md="2">
+          <v-card color="purple-darken-1" theme="dark" height="100%">
+            <v-card-title class="text-caption">Yape Total</v-card-title>
             <v-card-text class="text-h5 font-weight-bold">
               S/ {{ metrics.totalYape.toFixed(2) }}
             </v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" sm="6" md="3">
-          <v-card :color="metrics.totalDiferencia >= 0 ? 'red-darken-2' : 'teal-darken-2'" theme="dark">
-            <v-card-title class="text-subtitle-2">Diferencia Total (Descuadre)</v-card-title>
+        <v-col cols="12" sm="6" md="2">
+          <v-card color="blue-darken-1" theme="dark" height="100%">
+            <v-card-title class="text-caption">Total Dinero PCs</v-card-title>
+            <v-card-text class="text-h5 font-weight-bold">
+              S/ {{ metrics.totalDineroPcs.toFixed(2) }}
+            </v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" sm="6" md="2">
+          <v-card :color="metrics.totalDiferencia >= 0 ? 'red-darken-2' : 'teal-darken-2'" theme="dark" height="100%">
+            <v-card-title class="text-caption">Diferencia (Descuadre)</v-card-title>
             <v-card-text class="text-h5 font-weight-bold">
               S/ {{ metrics.totalDiferencia.toFixed(2) }}
             </v-card-text>
@@ -100,6 +122,7 @@
                   <th class="text-left">Horario</th>
                   <th class="text-left text-green">Efectivo</th>
                   <th class="text-left text-purple">Yape</th>
+                  <th class="text-left text-deep-orange">Consumo</th>
                   <th class="text-left">DINEROPCS</th>
                   <th class="text-left">Retiros</th>
                   <th class="text-left">KW Cons.</th>
@@ -114,6 +137,7 @@
                   <td class="text-caption">{{ turno.horaEntrada }} - {{ turno.horaSalida }}</td>
                   <td class="text-green-darken-2 font-weight-bold">{{ turno.efectivo.toFixed(2) }}</td>
                   <td class="text-purple-darken-2">{{ turno.yape.toFixed(2) }}</td>
+                  <td class="text-deep-orange-darken-2">{{ turno.consumo.toFixed(2) }}</td>
                   <td>{{ (turno.efectivo + turno.yape - turno.snacks).toFixed(2) }}</td>
                   <td>{{ turno.retiros.toFixed(2) }}</td>
                   <td>{{ turno.kwConsumidos }}</td>
@@ -126,7 +150,7 @@
                   </td>
                 </tr>
                 <tr v-if="filteredTurnos.length === 0">
-                  <td colspan="10" class="text-center text-grey pa-4">No se encontraron turnos con los filtros seleccionados.</td>
+                  <td colspan="11" class="text-center text-grey pa-4">No se encontraron turnos con los filtros seleccionados.</td>
                 </tr>
               </tbody>
             </v-table>
@@ -137,7 +161,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, computed } from 'vue';
+import { ref, onMounted, nextTick, computed, watch } from 'vue';
 import { useTurnoStore } from '../stores/turno';
 import { useAuthStore } from '../stores/auth';
 import { useRouter } from 'vue-router';
@@ -155,7 +179,7 @@ const isPageLoading = ref(true);
 const currentYear = new Date().getFullYear();
 const selectedYear = ref(currentYear);
 const selectedMonth = ref(new Date().getMonth() + 1); // 1-12
-const selectedUser = ref('Todos');
+const selectedUser = ref(['Todos']);
 
 const years = Array.from({ length: 5 }, (_, i) => currentYear - i);
 const months = [
@@ -172,6 +196,22 @@ const availableUsers = computed(() => {
   return ['Todos', ...Array.from(users)];
 });
 
+// Lógica inteligente para selección múltiple de usuarios
+watch(selectedUser, (newVal, oldVal) => {
+  if (newVal.includes('Todos')) {
+    if (newVal.length > 1 && !oldVal.includes('Todos')) {
+      // Si el usuario selecciona "Todos" manualmente, limpiamos el resto
+      selectedUser.value = ['Todos'];
+    } else if (newVal.length > 1 && oldVal.includes('Todos')) {
+      // Si "Todos" estaba seleccionado y se selecciona otro usuario, quitamos "Todos"
+      selectedUser.value = newVal.filter(u => u !== 'Todos');
+    }
+  } else if (newVal.length === 0) {
+    // Si no queda nada seleccionado, volvemos a "Todos"
+    selectedUser.value = ['Todos'];
+  }
+});
+
 // --- Lógica de Filtrado y Métricas ---
 
 const calculateDiferencia = (turno) => {
@@ -180,15 +220,13 @@ const calculateDiferencia = (turno) => {
 
 const filteredTurnos = computed(() => {
   return turnos.value.filter(turno => {
-    const turnoDate = new Date(turno.fecha);
-    // Ajuste de zona horaria simple o uso de componentes de fecha locales
-    // Nota: 'turno.fecha' viene como YYYY-MM-DD string usualmente.
-    // Usamos split para evitar problemas de zona horaria al crear Date
+    // Ajuste de fecha
     const [year, month] = turno.fecha.split('-').map(Number);
     
     const matchYear = selectedYear.value === 'all' || year === selectedYear.value;
     const matchMonth = selectedMonth.value === 'all' || month === selectedMonth.value;
-    const matchUser = selectedUser.value === 'Todos' || turno.userName === selectedUser.value;
+    
+    const matchUser = selectedUser.value.includes('Todos') || selectedUser.value.includes(turno.userName);
 
     return matchYear && matchMonth && matchUser;
   });
@@ -196,20 +234,30 @@ const filteredTurnos = computed(() => {
 
 const metrics = computed(() => {
   const data = filteredTurnos.value;
+  // Usamos un Set para contar días únicos (basado en la fecha)
+  const uniqueDays = new Set(data.map(t => t.fecha));
+
   return data.reduce((acc, turno) => {
     acc.totalEfectivo += turno.efectivo;
     acc.totalYape += turno.yape;
-    // Dinero PCS = Efectivo + Yape - Snacks (aprox, según lógica previa)
+    acc.totalConsumo += turno.consumo; // Nueva métrica
     acc.totalDineroPcs += (turno.efectivo + turno.yape - turno.snacks); 
     acc.totalDiferencia += calculateDiferencia(turno);
     return acc;
-  }, { totalEfectivo: 0, totalYape: 0, totalDineroPcs: 0, totalDiferencia: 0 });
+  }, { 
+    totalEfectivo: 0, 
+    totalYape: 0, 
+    totalConsumo: 0,
+    totalDineroPcs: 0, 
+    totalDiferencia: 0,
+    diasTrabajados: uniqueDays.size // Nueva métrica
+  });
 });
 
 const resetFilters = () => {
   selectedYear.value = currentYear;
   selectedMonth.value = new Date().getMonth() + 1;
-  selectedUser.value = 'Todos';
+  selectedUser.value = ['Todos'];
 };
 
 const formatDate = (dateStr) => {
@@ -227,7 +275,7 @@ const fetchTurnos = async () => {
     // Ordenar descendente por ID
     const sortedTurnos = fetchedTurnos.sort((a, b) => b.id - a.id);
 
-    // Procesar KW Consumidos (lógica mantenida)
+    // Procesar KW Consumidos
     const processedTurnos = sortedTurnos.map((turno, index) => {
       const previousTurn = sortedTurnos[index + 1];
       let kwConsumidos = 'N/A';
