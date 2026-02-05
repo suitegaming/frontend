@@ -146,7 +146,7 @@
                   </td>
                   <td v-if="authStore.isAdmin">
                     <v-btn icon="mdi-pencil" size="x-small" variant="text" color="primary" @click.stop="editTurno(turno.id)"></v-btn>
-                    <v-btn icon="mdi-delete" size="x-small" variant="text" color="error" @click.stop="deleteTurno(turno.id)" :loading="deletingTurnoId === turno.id" :disabled="!!deletingTurnoId"></v-btn>
+                    <v-btn icon="mdi-delete" size="x-small" variant="text" color="error" @click.stop="openDeleteDialog(turno.id)" :loading="deletingTurnoId === turno.id" :disabled="!!deletingTurnoId"></v-btn>
                   </td>
                 </tr>
                 <tr v-if="filteredTurnos.length === 0">
@@ -157,6 +157,21 @@
           </v-responsive>
         </v-card-text>
       </v-card>
+
+      <!-- Diálogo de Confirmación de Borrado -->
+      <v-dialog v-model="deleteDialog" persistent max-width="500px">
+        <v-card>
+          <v-card-title class="text-h5">¿Confirmar eliminación?</v-card-title>
+          <v-card-text>
+            Esta acción eliminará el turno permanentemente, revertirá el efectivo de la caja y devolverá los productos al stock. Esta acción no se puede deshacer.
+          </v-card-text>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="blue-darken-1" variant="text" @click="closeDeleteDialog">Cancelar</v-btn>
+            <v-btn color="red-darken-1" variant="text" @click="confirmDelete" :loading="!!deletingTurnoId">Eliminar permanentemente</v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
     </div>
   </v-container>
 </template>
@@ -175,6 +190,10 @@ const router = useRouter();
 const notificationStore = useNotificationStore();
 const deletingTurnoId = ref(null);
 const isPageLoading = ref(true);
+
+// --- Diálogo de Confirmación ---
+const deleteDialog = ref(false);
+const idToDelete = ref(null);
 
 // --- Filtros ---
 const currentYear = new Date().getFullYear();
@@ -296,13 +315,26 @@ const editTurno = (id) => {
   router.push({ name: 'EditarTurno', params: { id } });
 };
 
-const deleteTurno = async (id) => {
-  deletingTurnoId.value = id;
+const openDeleteDialog = (id) => {
+  idToDelete.value = id;
+  deleteDialog.value = true;
+};
+
+const closeDeleteDialog = () => {
+  deleteDialog.value = false;
+  idToDelete.value = null;
+};
+
+const confirmDelete = async () => {
+  if (!idToDelete.value) return;
+  
+  deletingTurnoId.value = idToDelete.value;
   await nextTick();
   try {
-    await turnoStore.deleteTurno(id);
+    await turnoStore.deleteTurno(idToDelete.value);
     await fetchTurnos(); 
     notificationStore.show('Turno eliminado correctamente.');
+    closeDeleteDialog();
   } catch (error) {
     notificationStore.show(error.message, 'error');
   } finally {
