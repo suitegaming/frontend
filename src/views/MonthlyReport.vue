@@ -75,6 +75,14 @@
           </v-card>
         </v-col>
       </v-row>
+      <v-row class="mt-4">
+        <v-col cols="12">
+          <v-card :color="balanceMensual >= 0 ? 'teal-lighten-4' : 'red-lighten-4'">
+            <v-card-title>Balance Mensual (Efectivo + Yape - Gastos - 3500)</v-card-title>
+            <v-card-text class="text-h4 font-weight-bold">S/ {{ balanceMensual.toFixed(2) }}</v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
 
       <!-- Charts -->
       <v-row class="mt-6">
@@ -304,6 +312,15 @@ const promedioRetiros = computed(() => {
   if (diasConValor.length === 0) return 0;
   const total = diasConValor.reduce((acc, day) => acc + day.totalRetiros, 0);
   return total / diasConValor.length;
+});
+
+const balanceMensual = computed(() => {
+  if (!report.value) return 0;
+  // Formula: (Efectivo + Yape) - Gastos (sin depositos) - 3500
+  const totalIngresosReales = report.value.totalEfectivoMes + report.value.totalYapeMes;
+  const gastosOperativos = report.value.totalGastosMes;
+  const costoFijo = 3500;
+  return totalIngresosReales - gastosOperativos - costoFijo;
 });
 
 const chartOptions = {
