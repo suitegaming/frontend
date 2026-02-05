@@ -107,55 +107,66 @@
       </v-row>
 
       <!-- Daily Summary Table -->
-      <v-card class="mt-6">
-        <v-card-title>Resumen Diario</v-card-title>
-        <v-card-text>
-          <v-table>
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>DINEROPCS</th>
-                <th>DINEROPANCAFE</th>
-                <th>USANZAPANCAFE</th>
-                <th>EFECTIVO</th>
-                <th>YAPE</th>
-                <th>SNACKS</th>
-                <th>RETIROS</th>
-                <th>KWCONSUMIDOS</th>
-                <th>Ratio KW</th>
-                <th>Diferencia (Descuadre)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr class="font-weight-bold bg-blue-grey-lighten-5">
-                <td><strong>Totales</strong></td>
-                <td><strong>S/ {{ totalDineroPcs.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalDineroPancafe.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalUsanzaPancafe.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalEfectivo.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalYape.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalSnacks.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalRetiros.toFixed(2) }}</strong></td>
-                <td><strong>{{ totalKwConsumidos.toFixed(2) }}</strong></td>
-                <td><strong>{{ report.promedioRatioKwMes.toFixed(2) }}</strong></td>
-                <td><strong>S/ {{ totalDiferenciaDia.toFixed(2) }}</strong></td>
-              </tr>
-              <tr v-for="day in report.dailySummaries" :key="day.date">
-                <td>{{ day.date }}</td>
-                <td>S/ {{ calculateDineroPcs(day).toFixed(2) }}</td>
-                <td>S/ {{ day.totalDineroPancafe.toFixed(2) }}</td>
-                <td>S/ {{ day.totalUsanzaPancafe.toFixed(2) }}</td>
-                <td>S/ {{ day.totalEfectivo.toFixed(2) }}</td>
-                <td>S/ {{ day.totalYape.toFixed(2) }}</td>
-                <td>S/ {{ day.totalSnacks.toFixed(2) }}</td>
-                <td>S/ {{ day.totalRetiros.toFixed(2) }}</td>
-                <td>{{ day.kwConsumidos.toFixed(2) }}</td>
-                <td>{{ day.ratioKw.toFixed(2) }}</td>
-                <td>S/ {{ day.diferenciaDia.toFixed(2) }}</td>
-              </tr>
-            </tbody>
-
-          </v-table>
+      <v-card class="mt-6" shadow="sm">
+        <v-card-text class="pa-0">
+          <v-responsive>
+            <v-table density="compact" hover class="text-no-wrap">
+              <thead>
+                <tr class="bg-grey-lighten-3">
+                  <th class="text-left font-weight-bold">Fecha</th>
+                  <th class="text-left font-weight-bold text-green-darken-3">Efectivo</th>
+                  <th class="text-left font-weight-bold text-purple-darken-3">Yape</th>
+                  <th class="text-left font-weight-bold">Snacks</th>
+                  <th class="text-left font-weight-bold">DINEROPCS</th>
+                  <th class="text-left font-weight-bold">Ing. Inv.</th>
+                  <th class="text-left font-weight-bold text-deep-orange-darken-3">Consumo</th>
+                  <th class="text-left font-weight-bold">Retiros</th>
+                  <th class="text-left font-weight-bold">D. Pancafe</th>
+                  <th class="text-left font-weight-bold">U. Pancafe</th>
+                  <th class="text-left font-weight-bold">KW Cons.</th>
+                  <th class="text-left font-weight-bold">Ratio KW</th>
+                  <th class="text-left font-weight-bold">Users</th>
+                  <th class="text-left font-weight-bold">Diferencia</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr class="font-weight-bold bg-blue-grey-lighten-5">
+                  <td>Totales</td>
+                  <td class="text-green-darken-2">{{ totalEfectivo.toFixed(2) }}</td>
+                  <td class="text-purple-darken-2">{{ totalYape.toFixed(2) }}</td>
+                  <td>{{ totalSnacks.toFixed(2) }}</td>
+                  <td>{{ totalDineroPcs.toFixed(2) }}</td>
+                  <td>{{ totalIngresoInventario.toFixed(2) }}</td>
+                  <td class="text-deep-orange-darken-2">{{ totalConsumo.toFixed(2) }}</td>
+                  <td>{{ totalRetiros.toFixed(2) }}</td>
+                  <td>{{ totalDineroPancafe.toFixed(2) }}</td>
+                  <td>{{ totalUsanzaPancafe.toFixed(2) }}</td>
+                  <td>{{ totalKwConsumidos.toFixed(2) }}</td>
+                  <td>{{ report.promedioRatioKwMes.toFixed(2) }}</td>
+                  <td>{{ totalUsuarios }}</td>
+                  <td :class="totalDiferenciaDia >= 0 ? 'text-red' : 'text-teal'">{{ totalDiferenciaDia.toFixed(2) }}</td>
+                </tr>
+                <tr v-for="day in report.dailySummaries" :key="day.date">
+                  <td>{{ day.date }}</td>
+                  <td class="text-green-darken-2 font-weight-bold">{{ day.totalEfectivo.toFixed(2) }}</td>
+                  <td class="text-purple-darken-2">{{ day.totalYape.toFixed(2) }}</td>
+                  <td>{{ day.totalSnacks.toFixed(2) }}</td>
+                  <td class="font-weight-medium">{{ calculateDineroPcs(day).toFixed(2) }}</td>
+                  <td>{{ day.totalIngresoInventario.toFixed(2) }}</td>
+                  <td class="text-deep-orange-darken-2">{{ day.totalConsumo.toFixed(2) }}</td>
+                  <td>{{ day.totalRetiros.toFixed(2) }}</td>
+                  <td>{{ day.totalDineroPancafe.toFixed(2) }}</td>
+                  <td>{{ day.totalUsanzaPancafe.toFixed(2) }}</td>
+                  <td>{{ day.kwConsumidos.toFixed(2) }}</td>
+                  <td>{{ day.ratioKw.toFixed(2) }}</td>
+                  <td>{{ day.totalUsuarios }}</td>
+                  <td :class="day.diferenciaDia >= 0 ? 'text-red font-weight-bold' : 'text-teal font-weight-medium'">
+                    {{ day.diferenciaDia.toFixed(2) }}
+                  </td>
+                </tr>
+              </tbody>
+            </v-table>
+          </v-responsive>
         </v-card-text>
       </v-card>
     </div>
@@ -276,6 +287,14 @@ const totalSnacks = computed(() => {
   if (!report.value?.dailySummaries) return 0;
   return report.value.dailySummaries.reduce((acc, day) => acc + day.totalSnacks, 0);
 });
+const totalConsumo = computed(() => {
+  if (!report.value?.dailySummaries) return 0;
+  return report.value.dailySummaries.reduce((acc, day) => acc + day.totalConsumo, 0);
+});
+const totalIngresoInventario = computed(() => {
+  if (!report.value?.dailySummaries) return 0;
+  return report.value.dailySummaries.reduce((acc, day) => acc + day.totalIngresoInventario, 0);
+});
 const totalRetiros = computed(() => {
   if (!report.value?.dailySummaries) return 0;
   return report.value.dailySummaries.reduce((acc, day) => acc + day.totalRetiros, 0);
@@ -283,6 +302,10 @@ const totalRetiros = computed(() => {
 const totalKwConsumidos = computed(() => {
   if (!report.value?.dailySummaries) return 0;
   return report.value.dailySummaries.reduce((acc, day) => acc + day.kwConsumidos, 0);
+});
+const totalUsuarios = computed(() => {
+  if (!report.value?.dailySummaries) return 0;
+  return report.value.dailySummaries.reduce((acc, day) => acc + day.totalUsuarios, 0);
 });
 const totalDiferenciaDia = computed(() => {
   if (!report.value?.dailySummaries) return 0;
