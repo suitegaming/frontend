@@ -1,23 +1,25 @@
 # Etapa 1: Build
-# Usa una imagen de Node.js para instalar dependencias y construir la aplicación
-FROM node:20-alpine as builder
+# Usa una imagen diferente para romper la caché corrupta y una versión ligera
+FROM node:lts-alpine as builder
+
+# Aumentar límite de memoria para evitar cuelgues (ajustar según tu VPS, 2GB es seguro)
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 
 # Establece el directorio de trabajo
 WORKDIR /app
 
 # Copia los archivos de definición de paquetes e instala las dependencias
-COPY package*.json ./
-RUN npm install
+COPY package.json ./
+# Usamos --no-audit para acelerar y --legacy-peer-deps por si acaso
+RUN npm install --no-audit --legacy-peer-deps
 
 # Copia el resto de los archivos del proyecto
 COPY . .
 
 # Construye la aplicación para producción
-# La variable VITE_API_URL se pasará en el entorno de despliegue de Dokploy
 RUN npm run build
 
 # Etapa 2: Serve
-# Usa una imagen de Nginx para servir los archivos estáticos
 FROM nginx:stable-alpine
 
 # Copia los archivos construidos de la etapa anterior al directorio web de Nginx
