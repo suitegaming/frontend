@@ -1,35 +1,42 @@
-# Etapa 1: Build
-# Usa una imagen diferente para romper la caché corrupta y una versión ligera
-FROM node:lts-alpine as builder
+# ==========================================
+# Etapa 1: Construcción (Builder)
+# ==========================================
+FROM node:20-alpine as builder
 
-# Aumentar límite de memoria para evitar cuelgues (ajustar según tu VPS, 2GB es seguro)
-ENV NODE_OPTIONS="--max-old-space-size=2048"
+# INSTALACIÓN CRÍTICA:
+# Añadimos libc6-compat para compatibilidad con binarios de esbuild/sass en Alpine
+RUN apk add --no-cache libc6-compat
 
-# Establece el directorio de trabajo
+# Aumentar límite de memoria para Node.js (Vite/Rollup pueden ser pesados)
+ENV NODE_OPTIONS="--max-old-space-size=4096"
+
 WORKDIR /app
 
-# Copia los archivos de definición de paquetes e instala las dependencias
-COPY package.json ./
-# Usamos --no-audit para acelerar y --legacy-peer-deps por si acaso
-RUN npm install --no-audit --legacy-peer-deps
+# 1. Copiamos solo los archivos de dependencias primero para aprovechar la caché de Docker
+COPY package*.json ./
 
-# Copia el resto de los archivos del proyecto
+# 2. Instalamos dependencias
+# Usamos --no-audit para velocidad y --no-cache para no llenar el disco temporalmente
+RUN npm install --no-audit --no-fund
+
+# 3. Copiamos el resto del código fuente (respetando el .dockerignore)
 COPY . .
 
-# Construye la aplicación para producción
+# 4. Construimos la aplicación
 RUN npm run build
 
-# Etapa 2: Serve
-FROM nginx:stable-alpine
+# ==========================================
+# Etapa 2: Servidor Producción (Nginx)
+# ==========================================
+FROM nginx:stable-alpine as production
 
-# Copia los archivos construidos de la etapa anterior al directorio web de Nginx
-COPY --from=builder /app/dist /usr/share/nginx/html
-
-# Copia la configuración personalizada de Nginx
+# Copia la configuración de Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Expone el puerto 80
+# Copia los archivos estáticos generados en la etapa 'builder'
+# La carpeta de salida de Vite por defecto es 'dist'
+COPY --from=builder /app/dist /usr/share/nginx/html
+
 EXPOSE 80
 
-# Comando para iniciar Nginx
 CMD ["nginx", "-g", "daemon off;"]
