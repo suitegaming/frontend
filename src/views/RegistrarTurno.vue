@@ -264,6 +264,17 @@ const clearDraft = () => {
 }
 
 const handleSubmit = async () => {
+  // Validación: Campos obligatorios y mayores a 0 (excepto Consumo)
+  if (!turno.fecha || !turno.horaEntrada || !turno.horaSalida) {
+    notificationStore.show('Por favor complete la Fecha, Hora de Entrada y Hora de Salida.', 'error');
+    return;
+  }
+
+  if (turno.kw <= 0 || turno.usuarios <= 0 || turno.dineroPancafe <= 0 || turno.usanzaPancafe <= 0 || turno.efectivo <= 0) {
+    notificationStore.show('Los campos KW, Usuarios, Dinero Pancafe, Usanza Pancafe y Efectivo deben ser mayores a 0.', 'error');
+    return;
+  }
+
   // --- INICIO DE LA PRE-VALIDACIÓN ---
   const productNetChanges = new Map();
   for (const movement of movements.value) {
