@@ -278,16 +278,31 @@ const fetchTurnos = async () => {
     const sortedTurnos = fetchedTurnos.sort((a, b) => b.id - a.id);
 
     const processedTurnos = sortedTurnos.map((turno, index) => {
+      // Sanitize numeric fields to avoid null pointer exceptions with toFixed()
+      const sanitizedTurno = {
+        ...turno,
+        efectivo: turno.efectivo ?? 0,
+        yape: turno.yape ?? 0,
+        snacks: turno.snacks ?? 0,
+        ingresoInventario: turno.ingresoInventario ?? 0,
+        consumo: turno.consumo ?? 0,
+        retiros: turno.retiros ?? 0,
+        dineroPancafe: turno.dineroPancafe ?? 0,
+        usanzaPancafe: turno.usanzaPancafe ?? 0,
+        kw: turno.kw ?? 0,
+        usuarios: turno.usuarios ?? 0,
+        kwConsumidos: 'N/A' // Default
+      };
+
       const previousTurn = sortedTurnos[index + 1];
-      let kwConsumidos = 'N/A';
       if (previousTurn) {
-        const currentKw = parseFloat(turno.kw);
-        const previousKw = parseFloat(previousTurn.kw);
+        const currentKw = parseFloat(sanitizedTurno.kw);
+        const previousKw = parseFloat(previousTurn.kw ?? 0);
         if (!isNaN(currentKw) && !isNaN(previousKw)) {
-          kwConsumidos = (currentKw - previousKw).toFixed(2);
+          sanitizedTurno.kwConsumidos = (currentKw - previousKw).toFixed(2);
         }
       }
-      return { ...turno, kwConsumidos };
+      return sanitizedTurno;
     });
 
     turnos.value = processedTurnos;
