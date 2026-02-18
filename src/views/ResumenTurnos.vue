@@ -223,9 +223,15 @@ const calculateRetirosPercentage = (turno) => {
 
 const filteredTurnos = computed(() => {
   return turnos.value.filter(turno => {
-    const [year, month] = turno.fecha.split('-').map(Number);
-    const matchYear = selectedYear.value === 'all' || year === selectedYear.value;
-    const matchMonth = selectedMonth.value === 'all' || month === selectedMonth.value;
+    if (!turno.fecha) return false;
+    const parts = turno.fecha.split('-');
+    if (parts.length < 2) return false;
+
+    const year = Number(parts[0]);
+    const month = Number(parts[1]);
+
+    const matchYear = selectedYear.value === 'all' || year === Number(selectedYear.value);
+    const matchMonth = selectedMonth.value === 'all' || month === Number(selectedMonth.value);
     const matchUser = selectedUser.value.includes('Todos') || selectedUser.value.includes(turno.userName);
     return matchYear && matchMonth && matchUser;
   });
