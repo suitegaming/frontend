@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
+import { jwtDecode } from 'jwt-decode'
 
 import { useAuthStore } from '@/stores/auth'
 
@@ -95,14 +96,38 @@ const router = createRouter({
   routes
 })
 
+// Función para verificar si el token ha expirado
+function isTokenExpired(token) {
+  if (!token) return true;
+  try {
+    const decoded = jwtDecode(token);
+    const currentTime = Date.now() / 1000;
+    return decoded.exp < currentTime;
+  } catch (error) {
+    return true; // Si no se puede decodificar, asumimos inválido
+  }
+}
+
 router.beforeEach((to, from, next) => {
   const authStore = useAuthStore()
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    return next('/login')
+
+  // Verificar autenticación
+  if (to.meta.requiresAuth) {
+    // Si no está autenticado O el token expiró
+    if (!authStore.isAuthenticated || isTokenExpired(authStore.token)) {
+      // Si el token existe pero expiró, forzamos logout para limpiar estado
+      if (authStore.token) {
+        authStore.logout();
+      }
+      return next('/login');
+    }
   }
+
+  // Verificar rol de admin
   if (to.meta.requiresAdmin && !authStore.isAdmin) {
-    return next('/') // Redirect to home if not admin
+    return next('/') // Redirigir a home si no es admin
   }
+
   next()
 })
 

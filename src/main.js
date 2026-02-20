@@ -14,8 +14,27 @@ if (token) {
 
 const app = createApp(App)
 
-app.use(createPinia())
+const pinia = createPinia()
+app.use(pinia)
 app.use(router)
 app.use(vuetify) // Usa Vuetify
+
+// Setup Axios Interceptor for 401 handling
+import { useAuthStore } from '@/stores/auth'
+
+// We need to use the store after Pinia is installed
+const authStore = useAuthStore()
+
+axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+      if (authStore.token) {
+        authStore.logout();
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 app.mount('#app')
