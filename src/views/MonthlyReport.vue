@@ -62,16 +62,24 @@
         </v-col>
       </v-row>
       <v-row class="mt-4">
-        <v-col cols="12" md="6">
+        <v-col cols="12" md="4">
           <v-card color="purple-lighten-5">
             <v-card-title>Valor Total de Inventario</v-card-title>
             <v-card-text class="text-h5">S/ {{ totalInventoryValue.toFixed(2) }}</v-card-text>
           </v-card>
         </v-col>
-        <v-col cols="12" md="6">
+        <v-col cols="12" md="4">
           <v-card color="red-lighten-5">
-            <v-card-title>Total Gastos del Mes (sin depósitos)</v-card-title>
+            <v-card-title>Total Gastos (sin depósitos)</v-card-title>
             <v-card-text class="text-h5">S/ {{ report.totalGastosMes.toFixed(2) }}</v-card-text>
+          </v-card>
+        </v-col>
+        <v-col cols="12" md="4">
+          <v-card :color="balanceMensual >= 0 ? 'teal-lighten-5' : 'red-lighten-5'">
+            <v-card-title>Balance del Mes</v-card-title>
+            <v-card-text class="text-h5 font-weight-bold" :class="balanceMensual >= 0 ? 'text-teal-darken-3' : 'text-red-darken-3'">
+              S/ {{ balanceMensual.toFixed(2) }}
+            </v-card-text>
           </v-card>
         </v-col>
       </v-row>
@@ -304,6 +312,11 @@ const promedioRetiros = computed(() => {
   if (diasConValor.length === 0) return 0;
   const total = diasConValor.reduce((acc, day) => acc + day.totalRetiros, 0);
   return total / diasConValor.length;
+});
+
+const balanceMensual = computed(() => {
+  if (!report.value) return 0;
+  return (report.value.totalEfectivoMes + report.value.totalYapeMes) - report.value.totalGastosMes - 3500;
 });
 
 const chartOptions = {
