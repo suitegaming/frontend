@@ -105,6 +105,16 @@
           </v-card>
         </v-col>
       </v-row>
+      <v-row class="mt-4">
+        <v-col cols="12">
+          <v-card>
+            <v-card-title>Pancafe vs. Ratio KW</v-card-title>
+            <v-card-text>
+              <Bar v-if="pancafeChartData.labels.length" :data="pancafeChartData" :options="pancafeChartOptions" />
+            </v-card-text>
+          </v-card>
+        </v-col>
+      </v-row>
 
       <!-- Daily Summary Table -->
       <v-card class="mt-6">
@@ -170,9 +180,9 @@ import { ref, computed, onMounted } from 'vue';
 import { useReportStore } from '@/stores/report';
 import { useNotificationStore } from '@/stores/notification';
 import { Bar, Line } from 'vue-chartjs';
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement } from 'chart.js';
+import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement, LineController, BarController } from 'chart.js';
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement);
+ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale, PointElement, LineElement, LineController, BarController);
 
 const reportStore = useReportStore();
 const notificationStore = useNotificationStore();
@@ -246,6 +256,46 @@ const userChartData = computed(() => {
         fill: false,
       },
     ],
+  };
+});
+
+const pancafeChartData = computed(() => {
+  const labels = report.value?.dailySummaries.map(d => d.date) || [];
+  const dineroData = report.value?.dailySummaries.map(d => d.totalDineroPancafe) || [];
+  const usanzaData = report.value?.dailySummaries.map(d => d.totalUsanzaPancafe) || [];
+  const ratioData = report.value?.dailySummaries.map(d => d.ratioKw) || [];
+
+  return {
+    labels,
+    datasets: [
+      {
+        type: 'bar',
+        label: 'Dinero Pancafe',
+        backgroundColor: '#FFA726',
+        data: dineroData,
+        yAxisID: 'y',
+        order: 2
+      },
+      {
+        type: 'bar',
+        label: 'Usanza Pancafe',
+        backgroundColor: '#66BB6A',
+        data: usanzaData,
+        yAxisID: 'y',
+        order: 3
+      },
+      {
+        type: 'line',
+        label: 'Ratio KW',
+        borderColor: '#AB47BC',
+        backgroundColor: '#AB47BC',
+        data: ratioData,
+        yAxisID: 'y1',
+        order: 1,
+        tension: 0.3,
+        pointRadius: 4
+      }
+    ]
   };
 });
 
@@ -367,6 +417,31 @@ const userChartOptions = {
         display: true,
         text: 'Usuarios'
       }
+    }
+  }
+};
+
+const pancafeChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  interaction: {
+    mode: 'index',
+    intersect: false,
+  },
+  scales: {
+    y: {
+      type: 'linear',
+      display: true,
+      position: 'left',
+      title: { display: true, text: 'Monto (S/)' }
+    },
+    y1: {
+      type: 'linear',
+      display: true,
+      position: 'right',
+      grid: { drawOnChartArea: false },
+      title: { display: true, text: 'Ratio KW' },
+      ticks: { stepSize: 0.1 }
     }
   }
 };
