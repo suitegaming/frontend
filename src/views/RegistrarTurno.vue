@@ -17,7 +17,7 @@
                   Tipo: <v-chip :color="movement.type === 'IN' ? 'success' : 'error'" small><strong>{{ movement.type }}</strong></v-chip>
                 </v-list-item-subtitle>
                 <template v-slot:append>
-                  <v-btn @click="removeMovement(index)" color="error" icon="mdi-delete" variant="text" :disabled="isRegistering"></v-btn>
+                  <v-btn @click="removeMovement(movement)" color="error" icon="mdi-delete" variant="text" :disabled="isRegistering"></v-btn>
                 </template>
               </v-list-item>
             </v-list>
@@ -350,8 +350,11 @@ const submitNewMovement = () => {
   }
 };
 
-const removeMovement = (index) => {
-  movements.value.splice(index, 1);
+const removeMovement = (movement) => {
+  const index = movements.value.indexOf(movement);
+  if (index > -1) {
+    movements.value.splice(index, 1);
+  }
 };
 
 const addRetiro = (retiro) => {
