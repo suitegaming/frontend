@@ -90,7 +90,7 @@
           <v-card>
             <v-card-title>Ingresos vs. Gastos Diarios</v-card-title>
             <v-card-text>
-              <Bar v-if="chartData.labels.length" :data="chartData" :options="chartOptions" />
+              <Bar v-if="chartData.labels.length" :data="chartData" :options="revenueChartOptions" />
             </v-card-text>
           </v-card>
         </v-col>
@@ -100,7 +100,7 @@
           <v-card>
             <v-card-title>Usuarios por Día</v-card-title>
             <v-card-text>
-              <Line v-if="userChartData.labels.length" :data="userChartData" :options="chartOptions" />
+              <Line v-if="userChartData.labels.length" :data="userChartData" :options="userChartOptions" />
             </v-card-text>
           </v-card>
         </v-col>
@@ -220,11 +220,13 @@ const chartData = computed(() => {
         label: 'Ingresos',
         backgroundColor: '#4CAF50',
         data: incomeData,
+        yAxisID: 'y',
       },
       {
         label: 'Gastos',
         backgroundColor: '#F44336',
         data: expenseData,
+        yAxisID: 'y1',
       },
     ],
   };
@@ -318,6 +320,56 @@ const balanceMensual = computed(() => {
   if (!report.value) return 0;
   return (report.value.totalEfectivoMes + report.value.totalYapeMes) - report.value.totalGastosMes - 3500;
 });
+
+const revenueChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  interaction: {
+    mode: 'index',
+    intersect: false,
+  },
+  scales: {
+    y: {
+      type: 'linear',
+      display: true,
+      position: 'left',
+      title: {
+        display: true,
+        text: 'Ingresos (S/)'
+      }
+    },
+    y1: {
+      type: 'linear',
+      display: true,
+      position: 'right',
+      grid: {
+        drawOnChartArea: false, // Evita que las líneas de la cuadrícula se superpongan
+      },
+      title: {
+        display: true,
+        text: 'Gastos (S/)'
+      }
+    },
+  }
+};
+
+const userChartOptions = {
+  responsive: true,
+  maintainAspectRatio: false,
+  scales: {
+    y: {
+      beginAtZero: true,
+      ticks: {
+        stepSize: 1, // Asegura que solo se muestren enteros
+        precision: 0
+      },
+      title: {
+        display: true,
+        text: 'Usuarios'
+      }
+    }
+  }
+};
 
 const chartOptions = {
   responsive: true,
