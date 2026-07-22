@@ -78,6 +78,12 @@ const routes = [
     meta: { requiresAuth: true, requiresAdmin: true }
   },
   {
+    path: '/admin/annual-report',
+    name: 'AnnualReport',
+    component: () => import('@/views/AnnualReport.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
+  },
+  {
     path: '/admin/analytics',
     name: 'AnalyticsDashboard',
     component: () => import('@/views/AnalyticsDashboard.vue'),

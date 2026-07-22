@@ -6,6 +6,7 @@ const API_URL = `${import.meta.env.VITE_API_URL}/api`;
 export const useReportStore = defineStore('report', {
   state: () => ({
     monthlyReport: null,
+    annualReport: null,
     totalInventoryValue: 0,
     bestSellers: [],
     snackProfit: null,
@@ -21,6 +22,18 @@ export const useReportStore = defineStore('report', {
       } catch (error) {
         const errorMessage = error.response?.data?.message || error.response?.data;
         throw new Error(errorMessage || 'Failed to fetch monthly report');
+      }
+    },
+    async fetchAnnualReport(year) {
+      try {
+        const response = await axios.get(`${API_URL}/reports/annual`, {
+          params: { year }
+        });
+        this.annualReport = response.data;
+        return response.data;
+      } catch (error) {
+        const errorMessage = error.response?.data?.message || error.response?.data;
+        throw new Error(errorMessage || 'Failed to fetch annual report');
       }
     },
     async fetchTotalInventoryValue() {
